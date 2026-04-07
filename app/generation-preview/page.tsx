@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
-import { CheckCircle2, Sparkles, AlertCircle, AlertTriangle, ArrowLeft, Bot } from 'lucide-react';
+import { CheckCircle2, Sparkles, AlertCircle, AlertTriangle, ArrowLeft, Bot, Zap, Clock, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -63,9 +63,31 @@ function GenerationPreviewContent() {
     }>
   >([]);
   const agentRevealResolveRef = useRef<(() => void) | null>(null);
+  const [startTime] = useState(Date.now());
+  const [elapsedTime, setElapsedTime] = useState(0);
 
   // Compute active steps based on session state
   const activeSteps = getActiveSteps(session);
+  
+  // Calculate progress percentage
+  const progressPercent = activeSteps.length > 0 
+    ? Math.round(((currentStepIndex + 1) / activeSteps.length) * 100) 
+    : 0;
+
+  // Update elapsed time
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [startTime]);
+
+  // Format elapsed time
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // Set video playback speed to slow
   useEffect(() => {
@@ -796,10 +818,43 @@ function GenerationPreviewContent() {
   // Still loading session from sessionStorage
   if (!sessionLoaded) {
     return (
-      <div className="min-h-[100dvh] w-full bg-[#050a15] flex items-center justify-center">
-        <div className="text-cyan-400 font-mono text-sm tracking-wider animate-pulse">
-          INITIALIZING WORKBENCH...
-        </div>
+      <div 
+        className="min-h-[100dvh] w-full flex items-center justify-center"
+        style={{
+          background: `linear-gradient(
+            45deg,
+            hsl(206deg 100% 91%) 0%,
+            hsl(215deg 100% 93%) 11%,
+            hsl(224deg 100% 95%) 22%,
+            hsl(233deg 100% 96%) 33%,
+            hsl(242deg 100% 97%) 44%,
+            hsl(251deg 100% 97%) 56%,
+            hsl(194deg 100% 96%) 67%,
+            hsl(168deg 100% 94%) 78%,
+            hsl(141deg 100% 92%) 89%,
+            hsl(115deg 100% 90%) 100%
+          )`,
+        }}
+      >
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <div className="size-12 rounded-2xl bg-white shadow-lg flex items-center justify-center">
+            <svg className="animate-spin size-6 text-violet-500" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.2" />
+              <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+            </svg>
+          </div>
+          <motion.span
+            className="text-slate-500 text-sm font-medium"
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          >
+            Initializing...
+          </motion.span>
+        </motion.div>
       </div>
     );
   }
@@ -807,21 +862,45 @@ function GenerationPreviewContent() {
   // No session found
   if (!session) {
     return (
-      <div className="min-h-[100dvh] w-full bg-[#050a15] flex items-center justify-center p-4">
-        <div className="text-center space-y-6">
-          <div className="size-20 mx-auto rounded-xl border border-red-500/30 bg-red-500/10 flex items-center justify-center">
-            <AlertCircle className="size-10 text-red-400" />
+      <div 
+        className="min-h-[100dvh] w-full flex items-center justify-center p-4"
+        style={{
+          background: `linear-gradient(
+            45deg,
+            hsl(206deg 100% 91%) 0%,
+            hsl(215deg 100% 93%) 11%,
+            hsl(224deg 100% 95%) 22%,
+            hsl(233deg 100% 96%) 33%,
+            hsl(242deg 100% 97%) 44%,
+            hsl(251deg 100% 97%) 56%,
+            hsl(194deg 100% 96%) 67%,
+            hsl(168deg 100% 94%) 78%,
+            hsl(141deg 100% 92%) 89%,
+            hsl(115deg 100% 90%) 100%
+          )`,
+        }}
+      >
+        <motion.div 
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+          className="text-center space-y-6 p-8 rounded-3xl bg-white shadow-2xl max-w-md"
+        >
+          <div className="size-16 mx-auto rounded-2xl bg-red-50 flex items-center justify-center">
+            <AlertCircle className="size-8 text-red-500" />
           </div>
-          <h2 className="text-xl font-mono text-red-400">{t('generation.sessionNotFound')}</h2>
-          <p className="text-sm text-slate-500 font-mono">{t('generation.sessionNotFoundDesc')}</p>
+          <h2 className="text-xl font-bold text-slate-800">
+            {t('generation.sessionNotFound')}
+          </h2>
+          <p className="text-sm text-slate-500">{t('generation.sessionNotFoundDesc')}</p>
           <Button 
             onClick={() => router.push('/')} 
-            className="bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/30"
+            className="bg-slate-800 hover:bg-slate-700 text-white rounded-full px-6"
           >
             <ArrowLeft className="size-4 mr-2" />
             {t('generation.backToHome')}
           </Button>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -831,619 +910,211 @@ function GenerationPreviewContent() {
       ? activeSteps[Math.min(currentStepIndex, activeSteps.length - 1)]
       : ALL_STEPS[0];
 
-  // Terminal logs based on current step
-  const terminalLogs = [
-    `[SYSTEM] Workbench initialized...`,
-    `[AGENT-1] ${activeStep.id === 'web-search' ? 'Searching knowledge base...' : 'Standing by...'}`,
-    `[AGENT-2] ${activeStep.id === 'outline' ? 'Drafting course outline...' : 'Awaiting instructions...'}`,
-    `[AGENT-3] ${activeStep.id === 'slide-content' ? 'Generating slide content...' : 'Processing queue...'}`,
-    `[CORE] Status: ${error ? 'ERROR' : isComplete ? 'COMPLETE' : 'ACTIVE'}`,
+  // Define the generation steps for the list UI
+  const generationSteps = [
+    {
+      id: 'analyze',
+      title: 'Analyzing request',
+      subtitle: 'Understanding your learning objectives and content requirements',
+      icon: 'check',
+      mapToSteps: ['pdf-analysis', 'web-search'],
+    },
+    {
+      id: 'generate',
+      title: 'Generating content',
+      subtitle: 'Creating slides, simulations, and interactive elements',
+      icon: 'sparkle',
+      mapToSteps: ['outline', 'slide-content', 'agent-generation'],
+    },
+    {
+      id: 'review',
+      title: 'Reviewing quality',
+      subtitle: 'AI-powered review ensuring accuracy and engagement',
+      icon: 'document',
+      mapToSteps: ['actions'],
+    },
+    {
+      id: 'finalize',
+      title: 'Finalizing classroom',
+      subtitle: 'Preparing your interactive learning experience',
+      icon: 'circle-check',
+      mapToSteps: [],
+    },
   ];
 
+  // Determine the status of each step based on activeStep
+  const getStepStatus = (step: typeof generationSteps[0], index: number): 'pending' | 'active' | 'complete' => {
+    if (error) {
+      // On error, mark current step as active (shows error state)
+      const currentIndex = generationSteps.findIndex(s => s.mapToSteps.includes(activeStep.id));
+      if (index < currentIndex) return 'complete';
+      if (index === currentIndex) return 'active';
+      return 'pending';
+    }
+    
+    if (isComplete) return 'complete';
+    
+    // Find which generation step is currently active
+    const currentStepIndex = generationSteps.findIndex(s => s.mapToSteps.includes(activeStep.id));
+    
+    if (index < currentStepIndex) return 'complete';
+    if (index === currentStepIndex) return 'active';
+    return 'pending';
+  };
+
   return (
-    <div className="min-h-[100dvh] w-full bg-[#030712] flex flex-col items-center justify-center relative overflow-hidden">
-      
-      {/* ═══ Layer 0: Background Video (GPU-Accelerated) ═══ */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10 gpu-layer">
-        <video
-          ref={videoRef}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          className="absolute inset-0 w-full h-full object-cover transform-gpu opacity-40"
-          style={{
-            willChange: 'transform',
-            transform: 'translateZ(0) scale(1.1)',
-          }}
-        >
-          <source src="/hf_20260217_030345_246c0224-10a4-422c-b324-070b7c0eceda.mp4" type="video/mp4" />
-        </video>
-        {/* Dark overlay to blend video with quantum grid */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#030712]/60 via-[#030712]/40 to-[#030712]/80 transform-gpu" />
-      </div>
-      
-      {/* ═══ Layer 1: Deep Ambient Blobs (GPU-Accelerated) ═══ */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden gpu-layer">
+    <div 
+      className="min-h-[100dvh] w-full flex items-center justify-center p-4 relative overflow-hidden"
+      style={{
+        background: `linear-gradient(
+          45deg,
+          hsl(206deg 100% 91%) 0%,
+          hsl(215deg 100% 93%) 11%,
+          hsl(224deg 100% 95%) 22%,
+          hsl(233deg 100% 96%) 33%,
+          hsl(242deg 100% 97%) 44%,
+          hsl(251deg 100% 97%) 56%,
+          hsl(194deg 100% 96%) 67%,
+          hsl(168deg 100% 94%) 78%,
+          hsl(141deg 100% 92%) 89%,
+          hsl(115deg 100% 90%) 100%
+        )`,
+      }}
+    >
+      {/* Subtle animated background blobs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <motion.div
-          className="absolute w-[800px] h-[800px] rounded-full transform-gpu"
+          className="absolute w-[600px] h-[600px] rounded-full"
           style={{
-            background: 'radial-gradient(circle, rgba(79,70,229,0.15) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(147, 197, 253, 0.3) 0%, transparent 70%)',
             left: '-10%',
-            top: '-20%',
-            filter: 'blur(80px)',
-            willChange: 'transform',
-          }}
-          animate={{
-            x: [0, 150, 50, 0],
-            y: [0, 100, -50, 0],
-            scale: [1, 1.2, 0.9, 1],
-            rotate: [0, 45, -20, 0],
-          }}
-          transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
-        />
-        <motion.div
-          className="absolute w-[600px] h-[600px] rounded-full transform-gpu"
-          style={{
-            background: 'radial-gradient(circle, rgba(0,217,255,0.12) 0%, transparent 70%)',
-            right: '-5%',
-            bottom: '-10%',
+            top: '-10%',
             filter: 'blur(60px)',
-            willChange: 'transform',
           }}
-          animate={{
-            x: [0, -100, 80, 0],
-            y: [0, -80, 60, 0],
-            scale: [1, 0.8, 1.3, 1],
-            rotate: [0, -30, 60, 0],
-          }}
-          transition={{ duration: 50, repeat: Infinity, ease: 'linear' }}
+          animate={{ x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.div
-          className="absolute w-[500px] h-[500px] rounded-full transform-gpu"
+          className="absolute w-[500px] h-[500px] rounded-full"
           style={{
-            background: 'radial-gradient(circle, rgba(236,72,153,0.1) 0%, transparent 70%)',
-            left: '40%',
-            top: '60%',
-            filter: 'blur(70px)',
-            willChange: 'transform',
+            background: 'radial-gradient(circle, rgba(196, 181, 253, 0.25) 0%, transparent 70%)',
+            right: '-5%',
+            bottom: '-5%',
+            filter: 'blur(50px)',
           }}
-          animate={{
-            x: [0, 80, -60, 0],
-            y: [0, -100, 50, 0],
-            scale: [1, 1.1, 0.85, 1],
+          animate={{ x: [0, -40, 0], y: [0, -30, 0] }}
+          transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute w-[400px] h-[400px] rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(167, 243, 208, 0.2) 0%, transparent 70%)',
+            left: '30%',
+            bottom: '10%',
+            filter: 'blur(40px)',
           }}
-          transition={{ duration: 45, repeat: Infinity, ease: 'linear' }}
+          animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
+          transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
         />
       </div>
 
-      {/* ═══ Layer 2: 3D Isometric Quantum Grid ═══ */}
-      <motion.div 
-        className="fixed inset-0 pointer-events-none"
-        style={{ perspective: '1000px' }}
-      >
-        <motion.div
-          className="absolute inset-0"
-          style={{ transformStyle: 'preserve-3d' }}
-          animate={{
-            rotateX: [2, -2, 2],
-            rotateY: [-3, 3, -3],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          <svg className="absolute inset-0 w-full h-full opacity-30">
-            <defs>
-              <pattern id="quantumGrid" width="80" height="80" patternUnits="userSpaceOnUse">
-                <path 
-                  d="M 80 0 L 0 0 0 80" 
-                  fill="none" 
-                  stroke="url(#gridLineGradient)" 
-                  strokeWidth="0.5"
-                />
-                <circle cx="0" cy="0" r="1.5" fill="rgba(0,217,255,0.5)" />
-              </pattern>
-              <linearGradient id="gridLineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="rgba(0,217,255,0.4)" />
-                <stop offset="50%" stopColor="rgba(139,92,246,0.3)" />
-                <stop offset="100%" stopColor="rgba(0,217,255,0.4)" />
-              </linearGradient>
-              <radialGradient id="gridFadeRadial" cx="50%" cy="50%" r="60%">
-                <stop offset="0%" stopColor="white" stopOpacity="1" />
-                <stop offset="100%" stopColor="white" stopOpacity="0" />
-              </radialGradient>
-              <mask id="quantumMask">
-                <rect width="100%" height="100%" fill="url(#gridFadeRadial)" />
-              </mask>
-            </defs>
-            <motion.rect 
-              width="200%" 
-              height="200%" 
-              x="-50%"
-              y="-50%"
-              fill="url(#quantumGrid)" 
-              mask="url(#quantumMask)"
-              animate={{ 
-                x: ['-50%', '-30%', '-50%'],
-                y: ['-50%', '-30%', '-50%'],
-              }}
-              transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
-            />
-          </svg>
-        </motion.div>
-      </motion.div>
-
-      {/* ═══ Lumina Avatar Bubble (Near Hexagon) ═══ */}
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.5, x: 100 }}
-        animate={{ opacity: 1, scale: 1, x: 0 }}
-        transition={{ delay: 0.3, type: 'spring', stiffness: 100 }}
-        className="fixed top-1/2 right-[8%] -translate-y-1/2 z-20 hidden lg:block"
-      >
-        <motion.div
-          animate={{ y: [0, -15, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-          className="relative"
-        >
-          {/* Glass bubble */}
-          <div className={cn(
-            "size-28 rounded-full backdrop-blur-2xl flex items-center justify-center",
-            "border-2 transition-all duration-700",
-            error 
-              ? "border-red-500/50 shadow-[0_0_50px_rgba(239,68,68,0.3),inset_0_0_30px_rgba(239,68,68,0.1)]" 
-              : isComplete 
-                ? "border-green-500/50 shadow-[0_0_50px_rgba(34,197,94,0.3),inset_0_0_30px_rgba(34,197,94,0.1)]"
-                : "border-cyan-500/30 shadow-[0_0_50px_rgba(0,217,255,0.25),inset_0_0_30px_rgba(0,217,255,0.08)]",
-            "bg-slate-900/40"
-          )}>
-            <motion.div
-              animate={!error && !isComplete ? { 
-                scale: [1, 1.1, 1],
-                rotate: [0, 5, -5, 0],
-              } : {}}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              <Bot className={cn(
-                "size-12 transition-colors duration-500",
-                error ? "text-red-400" : isComplete ? "text-green-400" : "text-cyan-400"
-              )} />
-            </motion.div>
-          </div>
-          
-          {/* Projection beam */}
-          <motion.div
-            className="absolute top-1/2 -left-32 w-32 h-1"
-            style={{
-              background: error 
-                ? 'linear-gradient(90deg, transparent, rgba(239,68,68,0.5))' 
-                : isComplete
-                  ? 'linear-gradient(90deg, transparent, rgba(34,197,94,0.5))'
-                  : 'linear-gradient(90deg, transparent, rgba(0,217,255,0.5))',
-            }}
-            animate={{ opacity: [0.3, 0.8, 0.3] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-          
-          {/* Status label */}
-          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
-            <span className={cn(
-              "text-xs font-mono tracking-widest uppercase px-3 py-1 rounded-full",
-              "bg-slate-900/80 backdrop-blur-sm border",
-              error ? "text-red-400 border-red-500/30" : 
-              isComplete ? "text-green-400 border-green-500/30" : 
-              "text-cyan-400 border-cyan-500/30"
-            )}>
-              {error ? "Error" : isComplete ? "Complete" : "Projecting"}
-            </span>
-          </div>
-        </motion.div>
-      </motion.div>
-
-      {/* ═══ Observer Badge (Top Left) ═══ */}
-      <motion.div 
-        initial={{ opacity: 0, x: -50 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="fixed top-6 left-6 z-30 flex items-center gap-3"
-      >
-        <motion.div 
-          className={cn(
-            "size-12 rounded-xl flex items-center justify-center transition-all duration-500",
-            "backdrop-blur-xl border",
-            error ? "border-red-500/50 bg-red-500/10" :
-            isComplete ? "border-green-500/50 bg-green-500/10" :
-            "border-cyan-500/30 bg-cyan-500/10"
-          )}
-          animate={!error && !isComplete ? { 
-            boxShadow: [
-              '0 0 20px rgba(0,217,255,0.3)',
-              '0 0 40px rgba(139,92,246,0.3)',
-              '0 0 20px rgba(0,217,255,0.3)',
-            ]
-          } : {}}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <Bot className={cn(
-            "size-6",
-            error ? "text-red-400" : isComplete ? "text-green-400" : "text-cyan-400"
-          )} />
-        </motion.div>
-        <div className="hidden sm:block">
-          <div className="text-[10px] text-slate-600 font-mono uppercase tracking-[0.2em]">Observer</div>
-          <div className={cn(
-            "text-sm font-mono tracking-wide",
-            error ? "text-red-400" : isComplete ? "text-green-400" : "text-cyan-400"
-          )}>
-            {error ? "ERROR DETECTED" : isComplete ? "MISSION COMPLETE" : "MONITORING..."}
-          </div>
-        </div>
-      </motion.div>
-
-      {/* ═══ Exit Button ═══ */}
+      {/* Exit Button */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="fixed top-6 right-6 z-30"
+        className="fixed top-6 left-6 z-30"
       >
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={goBackToHome}
-          className="text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/10 font-mono tracking-wider border border-transparent hover:border-cyan-500/20"
+          className="text-slate-500 hover:text-slate-700 hover:bg-white/50 backdrop-blur-sm rounded-full px-4"
         >
           <ArrowLeft className="size-4 mr-2" />
-          EXIT
+          Back
         </Button>
       </motion.div>
 
-      {/* ═══ Central Quantum Core ═══ */}
-      <div className="relative z-10 flex flex-col items-center justify-center px-4">
-        
-        {/* Interactive Hexagon with Data-Dissolve */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: 'spring', stiffness: 100 }}
-          className="relative mb-8"
-        >
-          <svg width="280" height="240" viewBox="0 0 280 240" className="relative z-10">
-            {/* Outer hex glow */}
-            <motion.polygon
-              points="140,10 260,65 260,175 140,230 20,175 20,65"
-              fill="none"
-              stroke="url(#hexOuterGlow)"
-              strokeWidth="2"
-              opacity="0.3"
-              animate={{ 
-                scale: [1, 1.05, 1],
-                opacity: [0.2, 0.4, 0.2],
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
-            />
-            {/* Main hex border with dash animation */}
-            <motion.polygon
-              points="140,20 250,70 250,170 140,220 30,170 30,70"
-              fill="none"
-              stroke="url(#hexGradientMain)"
-              strokeWidth="1.5"
-              strokeDasharray="8 4"
-              animate={{ strokeDashoffset: [0, -24] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-            />
-            {/* Inner hex */}
-            <motion.polygon
-              points="140,40 230,80 230,160 140,200 50,160 50,80"
-              fill="rgba(0,217,255,0.02)"
-              stroke="rgba(0,217,255,0.2)"
-              strokeWidth="0.5"
-              animate={{ opacity: [0.5, 0.8, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-            {/* Data nodes */}
-            {[[140, 20], [250, 70], [250, 170], [140, 220], [30, 170], [30, 70]].map(([x, y], i) => (
-              <motion.circle
-                key={i}
-                cx={x}
-                cy={y}
-                r="4"
-                fill="url(#nodeGradient)"
-                animate={{ 
-                  r: [3, 5, 3],
-                  opacity: [0.6, 1, 0.6],
-                }}
-                transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
-              />
-            ))}
-            <defs>
-              <linearGradient id="hexGradientMain" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#00d9ff" />
-                <stop offset="50%" stopColor="#8b5cf6" />
-                <stop offset="100%" stopColor="#ec4899" />
-              </linearGradient>
-              <linearGradient id="hexOuterGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#00d9ff" stopOpacity="0.5" />
-                <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.5" />
-              </linearGradient>
-              <radialGradient id="nodeGradient">
-                <stop offset="0%" stopColor="#00d9ff" />
-                <stop offset="100%" stopColor="#8b5cf6" />
-              </radialGradient>
-            </defs>
-          </svg>
-
-          {/* Glitch Title inside hex */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <motion.h1 
-              className={cn(
-                "text-xl md:text-2xl font-mono font-bold tracking-[0.15em] uppercase text-center px-4",
-                "relative"
-              )}
-              style={{ 
-                color: error ? '#ef4444' : isComplete ? '#22c55e' : '#00d9ff',
-                textShadow: error 
-                  ? '0 0 20px rgba(239,68,68,0.5)' 
-                  : isComplete 
-                    ? '0 0 20px rgba(34,197,94,0.5)'
-                    : '0 0 20px rgba(0,217,255,0.5), 0 0 40px rgba(139,92,246,0.3)',
-              }}
-            >
-              {/* Glitch layers */}
-              <span className="relative">
-                {error ? 'GENERATION FAILED' : isComplete ? 'COMPLETE' : t(activeStep.title).toUpperCase()}
-                <motion.span
-                  className="absolute inset-0 text-pink-500 opacity-0"
-                  aria-hidden
-                  animate={{ 
-                    opacity: [0, 0.8, 0],
-                    x: [-2, 2, -2],
-                  }}
-                  transition={{ duration: 0.1, repeat: Infinity, repeatDelay: 3 }}
-                >
-                  {error ? 'GENERATION FAILED' : isComplete ? 'COMPLETE' : t(activeStep.title).toUpperCase()}
-                </motion.span>
-                <motion.span
-                  className="absolute inset-0 text-cyan-300 opacity-0"
-                  aria-hidden
-                  animate={{ 
-                    opacity: [0, 0.6, 0],
-                    x: [2, -2, 2],
-                  }}
-                  transition={{ duration: 0.1, repeat: Infinity, repeatDelay: 3.1 }}
-                >
-                  {error ? 'GENERATION FAILED' : isComplete ? 'COMPLETE' : t(activeStep.title).toUpperCase()}
-                </motion.span>
-              </span>
-            </motion.h1>
-            
-            {/* Scanline effect */}
-            <motion.div
-              className="absolute inset-0 pointer-events-none overflow-hidden opacity-20"
-              style={{
-                background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,217,255,0.1) 2px, rgba(0,217,255,0.1) 4px)',
-              }}
-              animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 0.5, repeat: Infinity }}
-            />
-
-            <p className="text-slate-500 font-mono text-xs md:text-sm mt-3 max-w-xs text-center px-4 tracking-wide">
-              {error ? error : isComplete ? t('generation.classroomReady') : statusMessage || t(activeStep.description)}
-            </p>
-          </div>
-        </motion.div>
-
-        {/* ═══ Floating Status Pods ═══ */}
-        <div className="flex flex-wrap justify-center gap-4 md:gap-6">
-          {/* Pod 1: SLIDES - Float Up */}
+      {/* Main Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="relative z-10 w-full max-w-xl bg-white rounded-3xl shadow-2xl p-8"
+      >
+        {/* Header */}
+        <div className="text-center mb-8">
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ 
-              opacity: 1, 
-              y: 0,
-            }}
-            transition={{ delay: 0.2 }}
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+            className="inline-flex items-center justify-center size-16 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 mb-4 shadow-lg shadow-violet-500/25"
           >
-            <motion.div
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-              className={cn(
-                "w-32 md:w-40 h-40 md:h-48 rounded-2xl backdrop-blur-xl p-4 flex flex-col items-center justify-center",
-                "border transition-all duration-500",
-                activeStep.id === 'slide-content' || activeStep.id === 'outline'
-                  ? "border-cyan-500/50 bg-cyan-500/5 shadow-[0_0_40px_rgba(0,217,255,0.15)]"
-                  : "border-slate-700/30 bg-slate-900/30 hover:border-cyan-500/30"
-              )}
-            >
-              <div className="text-[10px] font-mono text-slate-500 mb-3 uppercase tracking-[0.2em]">Slides</div>
-              <motion.div
-                animate={activeStep.id === 'slide-content' ? { 
-                  scale: [1, 1.1, 1],
-                } : {}}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              >
-                <svg width="56" height="56" viewBox="0 0 56 56" className="text-cyan-400">
-                  <rect x="6" y="6" width="44" height="34" rx="3" fill="none" stroke="currentColor" strokeWidth="1.5"/>
-                  <rect x="12" y="12" width="18" height="10" rx="1" fill="currentColor" opacity="0.2"/>
-                  <motion.line 
-                    x1="12" y1="26" x2="38" y2="26" 
-                    stroke="currentColor" strokeWidth="1.5" opacity="0.4"
-                    animate={{ pathLength: [0, 1] }}
-                    transition={{ duration: 1, repeat: Infinity }}
-                  />
-                  <line x1="12" y1="32" x2="30" y2="32" stroke="currentColor" strokeWidth="1" opacity="0.3"/>
-                  <rect x="20" y="44" width="16" height="4" rx="2" fill="currentColor" opacity="0.2"/>
-                </svg>
-              </motion.div>
-              <div className={cn(
-                "text-xs font-mono mt-3 transition-colors",
-                activeStep.id === 'slide-content' || activeStep.id === 'outline' ? "text-cyan-400" : "text-slate-600"
-              )}>
-                {streamingOutlines ? `${streamingOutlines.length} slides` : '—'}
-              </div>
-            </motion.div>
+            <Sparkles className="size-8 text-white" />
           </motion.div>
-
-          {/* Pod 2: QUIZZES - Float Down */}
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <motion.div
-              animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-              className={cn(
-                "w-32 md:w-40 h-40 md:h-48 rounded-2xl backdrop-blur-xl p-4 flex flex-col items-center justify-center",
-                "border transition-all duration-500",
-                activeStep.id === 'actions'
-                  ? "border-violet-500/50 bg-violet-500/5 shadow-[0_0_40px_rgba(139,92,246,0.15)]"
-                  : "border-slate-700/30 bg-slate-900/30 hover:border-violet-500/30"
-              )}
-            >
-              <div className="text-[10px] font-mono text-slate-500 mb-3 uppercase tracking-[0.2em]">Quizzes</div>
-              <motion.div
-                animate={activeStep.id === 'actions' ? { rotate: [0, 10, -10, 0] } : {}}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <svg width="56" height="56" viewBox="0 0 56 56" className="text-violet-400">
-                  <circle cx="28" cy="28" r="22" fill="none" stroke="currentColor" strokeWidth="1.5"/>
-                  <motion.path
-                    d="M16 28 L24 36 L40 20"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: activeStep.id === 'actions' ? [0, 1, 1, 0] : 0.4 }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                </svg>
-              </motion.div>
-              <div className={cn(
-                "text-xs font-mono mt-3 transition-colors",
-                activeStep.id === 'actions' ? "text-violet-400" : "text-slate-600"
-              )}>
-                Processing
-              </div>
-            </motion.div>
-          </motion.div>
-
-          {/* Pod 3: AGENTS - Subtle Rotate */}
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <motion.div
-              animate={{ 
-                y: [-4, 4, -4],
-                rotate: [-1, 1, -1],
-              }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-              className={cn(
-                "w-32 md:w-40 h-40 md:h-48 rounded-2xl backdrop-blur-xl p-4 flex flex-col items-center justify-center",
-                "border transition-all duration-500",
-                activeStep.id === 'agents'
-                  ? "border-pink-500/50 bg-pink-500/5 shadow-[0_0_40px_rgba(236,72,153,0.15)]"
-                  : "border-slate-700/30 bg-slate-900/30 hover:border-pink-500/30"
-              )}
-            >
-              <div className="text-[10px] font-mono text-slate-500 mb-3 uppercase tracking-[0.2em]">Agents</div>
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
-              >
-                <svg width="56" height="56" viewBox="0 0 56 56" className="text-pink-400">
-                  <circle cx="28" cy="28" r="5" fill="currentColor"/>
-                  <circle cx="28" cy="10" r="4" fill="currentColor" opacity="0.6"/>
-                  <circle cx="44" cy="37" r="4" fill="currentColor" opacity="0.6"/>
-                  <circle cx="12" cy="37" r="4" fill="currentColor" opacity="0.6"/>
-                  <line x1="28" y1="28" x2="28" y2="14" stroke="currentColor" strokeWidth="1" opacity="0.4"/>
-                  <line x1="28" y1="28" x2="40" y2="35" stroke="currentColor" strokeWidth="1" opacity="0.4"/>
-                  <line x1="28" y1="28" x2="16" y2="35" stroke="currentColor" strokeWidth="1" opacity="0.4"/>
-                </svg>
-              </motion.div>
-              <div className={cn(
-                "text-xs font-mono mt-3 transition-colors",
-                activeStep.id === 'agents' ? "text-pink-400" : "text-slate-600"
-              )}>
-                {generatedAgents.length > 0 ? `${generatedAgents.length} agents` : '—'}
-              </div>
-            </motion.div>
-          </motion.div>
+          <h1 className="text-2xl font-bold text-slate-800 mb-2">
+            {error ? 'Generation Failed' : isComplete ? 'Classroom Ready!' : 'Creating Your Classroom'}
+          </h1>
+          <p className="text-sm text-slate-500">
+            {error ? 'Something went wrong. Please try again.' : isComplete ? 'Your interactive learning experience is ready.' : 'This usually takes about a minute...'}
+          </p>
         </div>
 
-        {/* Error Action Button */}
+        {/* Steps List */}
+        <div className="flex flex-col gap-5">
+          {generationSteps.map((step, index) => {
+            const status = getStepStatus(step, index);
+            return (
+              <StepItem
+                key={step.id}
+                title={step.title}
+                subtitle={step.subtitle}
+                icon={step.icon as 'check' | 'sparkle' | 'document' | 'circle-check'}
+                status={status}
+                index={index}
+                hasError={error !== null && status === 'active'}
+              />
+            );
+          })}
+        </div>
+
+        {/* Error Action */}
         <AnimatePresence>
           {error && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="mt-8"
+              exit={{ opacity: 0, y: -10 }}
+              className="mt-8 flex justify-center"
             >
               <Button 
                 onClick={goBackToHome}
-                className="bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 font-mono tracking-wider"
+                className="bg-slate-800 hover:bg-slate-700 text-white rounded-full px-6"
               >
+                <ArrowLeft className="size-4 mr-2" />
                 {t('generation.goBackAndRetry')}
               </Button>
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
 
-      {/* ═══ Glass Terminal (Bottom) ═══ */}
-      <motion.div
-        initial={{ opacity: 0, y: 60 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6, type: 'spring', stiffness: 100 }}
-        className="fixed bottom-0 left-0 right-0 z-20 p-4"
-      >
-        <div className="max-w-2xl mx-auto rounded-t-2xl overflow-hidden backdrop-blur-2xl bg-slate-900/60 border border-slate-700/30 border-b-0 shadow-[0_-10px_60px_rgba(0,0,0,0.3)]">
-          {/* Terminal header */}
-          <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-700/30 bg-slate-800/30">
-            <div className="flex gap-1.5">
-              <div className="size-2.5 rounded-full bg-red-500/80" />
-              <div className="size-2.5 rounded-full bg-yellow-500/80" />
-              <div className="size-2.5 rounded-full bg-green-500/80" />
+        {/* Progress indicator */}
+        {!error && !isComplete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="mt-8 flex items-center justify-center gap-3"
+          >
+            <div className="text-xs text-slate-400 font-medium">
+              {formatTime(elapsedTime)} elapsed
             </div>
-            <span className="text-[10px] font-mono text-slate-500 ml-2 tracking-wider">agent_logs.terminal</span>
-            <motion.div 
-              className="ml-auto size-2 rounded-full bg-cyan-400"
-              animate={{ opacity: [1, 0.3, 1] }}
-              transition={{ duration: 1, repeat: Infinity }}
-            />
-          </div>
-          {/* Terminal content */}
-          <div className="p-4 font-mono text-[11px] space-y-1.5 max-h-28 overflow-hidden">
-            {terminalLogs.map((log, i) => (
-              <motion.div
-                key={`${log}-${i}`}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05, duration: 0.2 }}
-                className={cn(
-                  "tracking-wide",
-                  log.includes('ERROR') && "text-red-400",
-                  log.includes('COMPLETE') && "text-green-400",
-                  log.includes('ACTIVE') && "text-cyan-400",
-                  !log.includes('ERROR') && !log.includes('COMPLETE') && !log.includes('ACTIVE') && "text-slate-500",
-                )}
-              >
-                {log}
-              </motion.div>
-            ))}
-            <div className="flex items-center gap-1 text-cyan-400">
-              <span className="text-slate-600">{'>'}</span>
-              <motion.span
-                animate={{ opacity: [1, 0] }}
-                transition={{ duration: 0.5, repeat: Infinity }}
-              >
-                █
-              </motion.span>
+            <div className="w-px h-3 bg-slate-200" />
+            <div className="text-xs text-slate-400">
+              {progressPercent}% complete
             </div>
-          </div>
-        </div>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Agent Reveal Modal */}
@@ -1460,13 +1131,157 @@ function GenerationPreviewContent() {
   );
 }
 
+// ═══ Step Item Component ═══
+interface StepItemProps {
+  title: string;
+  subtitle: string;
+  icon: 'check' | 'sparkle' | 'document' | 'circle-check';
+  status: 'pending' | 'active' | 'complete';
+  index: number;
+  hasError?: boolean;
+}
+
+function StepItem({ title, subtitle, icon, status, index, hasError }: StepItemProps) {
+  const iconContent = {
+    check: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="20 6 9 17 4 12" />
+      </svg>
+    ),
+    sparkle: (
+      <Sparkles className="size-4" />
+    ),
+    document: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <path d="m9 15 2 2 4-4" />
+      </svg>
+    ),
+    'circle-check': (
+      <CheckCircle2 className="size-4" />
+    ),
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.1, duration: 0.4 }}
+      className={cn(
+        "flex items-center gap-4 transition-all duration-300",
+        status === 'pending' && "opacity-40"
+      )}
+    >
+      {/* Icon */}
+      <div className={cn(
+        "flex items-center justify-center size-10 rounded-full shrink-0 transition-all duration-300",
+        status === 'complete' && "bg-slate-800 text-white",
+        status === 'active' && !hasError && "bg-slate-100 text-slate-600",
+        status === 'active' && hasError && "bg-red-100 text-red-500",
+        status === 'pending' && "bg-slate-100 text-slate-400"
+      )}>
+        {hasError ? (
+          <AlertCircle className="size-4" />
+        ) : (
+          iconContent[icon]
+        )}
+      </div>
+
+      {/* Text */}
+      <div className="flex-1 min-w-0">
+        <h3 className={cn(
+          "text-sm transition-all duration-300",
+          status === 'active' ? "font-semibold text-slate-800" : "font-medium text-slate-700",
+          status === 'pending' && "text-slate-500",
+          hasError && "text-red-600"
+        )}>
+          {hasError ? 'Error occurred' : title}
+        </h3>
+        <p className={cn(
+          "text-xs mt-0.5 transition-all duration-300",
+          status === 'pending' ? "text-slate-400" : "text-slate-500",
+          hasError && "text-red-400"
+        )}>
+          {hasError ? 'Please try again' : subtitle}
+        </p>
+      </div>
+
+      {/* Spinner for active state */}
+      {status === 'active' && !hasError && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="shrink-0"
+        >
+          <svg className="animate-spin size-5 text-violet-500" viewBox="0 0 24 24" fill="none">
+            <circle 
+              cx="12" 
+              cy="12" 
+              r="10" 
+              stroke="currentColor" 
+              strokeWidth="3" 
+              strokeOpacity="0.2"
+            />
+            <path 
+              d="M12 2a10 10 0 0 1 10 10" 
+              stroke="currentColor" 
+              strokeWidth="3" 
+              strokeLinecap="round"
+            />
+          </svg>
+        </motion.div>
+      )}
+
+      {/* Checkmark for complete state */}
+      {status === 'complete' && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          className="shrink-0"
+        >
+          <div className="size-5 rounded-full bg-emerald-500 flex items-center justify-center">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+        </motion.div>
+      )}
+    </motion.div>
+  );
+}
+
 export default function GenerationPreviewPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-[100dvh] w-full bg-[#050a15] flex items-center justify-center">
-          <div className="text-cyan-400 font-mono text-sm tracking-wider animate-pulse">
-            LOADING WORKBENCH...
+        <div 
+          className="min-h-[100dvh] w-full flex items-center justify-center"
+          style={{
+            background: `linear-gradient(
+              45deg,
+              hsl(206deg 100% 91%) 0%,
+              hsl(215deg 100% 93%) 11%,
+              hsl(224deg 100% 95%) 22%,
+              hsl(233deg 100% 96%) 33%,
+              hsl(242deg 100% 97%) 44%,
+              hsl(251deg 100% 97%) 56%,
+              hsl(194deg 100% 96%) 67%,
+              hsl(168deg 100% 94%) 78%,
+              hsl(141deg 100% 92%) 89%,
+              hsl(115deg 100% 90%) 100%
+            )`,
+          }}
+        >
+          <div className="flex flex-col items-center gap-4">
+            <div className="size-12 rounded-2xl bg-white shadow-lg flex items-center justify-center">
+              <svg className="animate-spin size-6 text-violet-500" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.2" />
+                <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+              </svg>
+            </div>
+            <div className="text-slate-500 text-sm font-medium">Loading...</div>
           </div>
         </div>
       }

@@ -584,6 +584,7 @@ function HomePage() {
                   }}
                   className="w-full bg-transparent border-0 text-sm md:text-base font-medium placeholder:text-muted-foreground/40 focus:outline-none"
                   placeholder=""
+                  suppressHydrationWarning
                 />
                 {/* Animated cycling placeholder */}
                 {!form.requirement && (
@@ -615,6 +616,7 @@ function HomePage() {
                           ? 'bg-neon-cyan/20 text-neon-cyan glow-cyan' 
                           : 'hover:bg-white/10 text-muted-foreground hover:text-foreground'
                       )}
+                      suppressHydrationWarning
                     >
                       <Paperclip className="size-4 md:size-5" />
                     </button>

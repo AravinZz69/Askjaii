@@ -691,6 +691,7 @@ export function AgentBar() {
               'border border-border/50 text-muted-foreground/70 hover:text-foreground hover:bg-muted/60',
             )}
             onClick={() => setOpen(!open)}
+            suppressHydrationWarning
           >
             <span className="text-xs text-muted-foreground/60 group-hover:text-muted-foreground transition-colors hidden sm:block font-medium flex-1 text-left truncate">
               {open ? t('agentBar.expandedTitle') : t('agentBar.readyToLearn')}

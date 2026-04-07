@@ -64,6 +64,7 @@ export function SpeechButton({
           type="button"
           disabled={disabled || isProcessing}
           onClick={handleClick}
+          suppressHydrationWarning
           className={cn(
             'relative flex items-center justify-center rounded-lg transition-all duration-200 shrink-0 cursor-pointer',
             sizeClasses,
