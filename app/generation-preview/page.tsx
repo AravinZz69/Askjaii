@@ -37,6 +37,7 @@ function GenerationPreviewContent() {
   const { t } = useI18n();
   const hasStartedRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const [session, setSession] = useState<GenerationSessionState | null>(null);
   const [sessionLoaded, setSessionLoaded] = useState(false);
@@ -65,6 +66,13 @@ function GenerationPreviewContent() {
 
   // Compute active steps based on session state
   const activeSteps = getActiveSteps(session);
+
+  // Set video playback speed to slow
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = 0.5; // 50% speed for cinematic slow motion
+    }
+  }, []);
 
   // Load session from sessionStorage
   useEffect(() => {
@@ -379,51 +387,27 @@ function GenerationPreviewContent() {
           const allAvatars = [
             {
               path: '/avatars/teacher.png',
-              desc: 'Male teacher with glasses, holding a book, green background',
+              desc: 'Teacher avatar - professional and knowledgeable',
             },
             {
-              path: '/avatars/teacher-2.png',
-              desc: 'Female teacher with long dark hair, blue traditional outfit, gentle expression',
+              path: '/avatars/assistant.jpg',
+              desc: 'Assistant avatar - helpful and supportive',
             },
             {
-              path: '/avatars/assist.png',
-              desc: 'Young female assistant with glasses, pink background, friendly smile',
-            },
-            {
-              path: '/avatars/assist-2.png',
-              desc: 'Young female in orange top and purple overalls, cheerful and approachable',
-            },
-            {
-              path: '/avatars/clown.png',
-              desc: 'Energetic girl with glasses pointing up, green shirt, lively and fun',
-            },
-            {
-              path: '/avatars/clown-2.png',
-              desc: 'Playful girl with curly hair doing rock gesture, blue shirt, humorous vibe',
+              path: '/avatars/classclown.jpg',
+              desc: 'Class clown avatar - energetic and humorous',
             },
             {
               path: '/avatars/curious.png',
-              desc: 'Surprised boy with glasses, hand on cheek, curious expression',
+              desc: 'Curious student avatar - inquisitive and eager',
             },
             {
-              path: '/avatars/curious-2.png',
-              desc: 'Boy with backpack holding a book and question mark bubble, inquisitive',
+              path: '/avatars/notetaker.jpg',
+              desc: 'Note taker avatar - organized and studious',
             },
             {
-              path: '/avatars/note-taker.png',
-              desc: 'Studious boy with glasses, blue shirt, calm and organized',
-            },
-            {
-              path: '/avatars/note-taker-2.png',
-              desc: 'Active boy with yellow backpack waving, blue outfit, enthusiastic learner',
-            },
-            {
-              path: '/avatars/thinker.png',
-              desc: 'Thoughtful girl with hand on chin, purple background, contemplative',
-            },
-            {
-              path: '/avatars/thinker-2.png',
-              desc: 'Girl reading a book intently, long dark hair, intellectual and focused',
+              path: '/avatars/thinker.jpg',
+              desc: 'Deep thinker avatar - thoughtful and contemplative',
             },
           ];
 
@@ -812,9 +796,9 @@ function GenerationPreviewContent() {
   // Still loading session from sessionStorage
   if (!sessionLoaded) {
     return (
-      <div className="min-h-[100dvh] w-full bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center p-4">
-        <div className="text-center text-muted-foreground">
-          <div className="size-8 border-2 border-current border-t-transparent rounded-full animate-spin mx-auto" />
+      <div className="min-h-[100dvh] w-full bg-[#050a15] flex items-center justify-center">
+        <div className="text-cyan-400 font-mono text-sm tracking-wider animate-pulse">
+          INITIALIZING WORKBENCH...
         </div>
       </div>
     );
@@ -823,18 +807,21 @@ function GenerationPreviewContent() {
   // No session found
   if (!session) {
     return (
-      <div className="min-h-[100dvh] w-full bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center p-4">
-        <Card className="p-8 max-w-md w-full">
-          <div className="text-center space-y-4">
-            <AlertCircle className="size-12 text-muted-foreground mx-auto" />
-            <h2 className="text-xl font-semibold">{t('generation.sessionNotFound')}</h2>
-            <p className="text-sm text-muted-foreground">{t('generation.sessionNotFoundDesc')}</p>
-            <Button onClick={() => router.push('/')} className="w-full">
-              <ArrowLeft className="size-4 mr-2" />
-              {t('generation.backToHome')}
-            </Button>
+      <div className="min-h-[100dvh] w-full bg-[#050a15] flex items-center justify-center p-4">
+        <div className="text-center space-y-6">
+          <div className="size-20 mx-auto rounded-xl border border-red-500/30 bg-red-500/10 flex items-center justify-center">
+            <AlertCircle className="size-10 text-red-400" />
           </div>
-        </Card>
+          <h2 className="text-xl font-mono text-red-400">{t('generation.sessionNotFound')}</h2>
+          <p className="text-sm text-slate-500 font-mono">{t('generation.sessionNotFoundDesc')}</p>
+          <Button 
+            onClick={() => router.push('/')} 
+            className="bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/30"
+          >
+            <ArrowLeft className="size-4 mr-2" />
+            {t('generation.backToHome')}
+          </Button>
+        </div>
       </div>
     );
   }
@@ -844,222 +831,620 @@ function GenerationPreviewContent() {
       ? activeSteps[Math.min(currentStepIndex, activeSteps.length - 1)]
       : ALL_STEPS[0];
 
+  // Terminal logs based on current step
+  const terminalLogs = [
+    `[SYSTEM] Workbench initialized...`,
+    `[AGENT-1] ${activeStep.id === 'web-search' ? 'Searching knowledge base...' : 'Standing by...'}`,
+    `[AGENT-2] ${activeStep.id === 'outline' ? 'Drafting course outline...' : 'Awaiting instructions...'}`,
+    `[AGENT-3] ${activeStep.id === 'slide-content' ? 'Generating slide content...' : 'Processing queue...'}`,
+    `[CORE] Status: ${error ? 'ERROR' : isComplete ? 'COMPLETE' : 'ACTIVE'}`,
+  ];
+
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex flex-col items-center justify-center p-4 relative overflow-hidden text-center">
-      {/* Background Decor */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div
-          className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: '4s' }}
+    <div className="min-h-[100dvh] w-full bg-[#030712] flex flex-col items-center justify-center relative overflow-hidden">
+      
+      {/* ═══ Layer 0: Background Video (GPU-Accelerated) ═══ */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10 gpu-layer">
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          className="absolute inset-0 w-full h-full object-cover transform-gpu opacity-40"
+          style={{
+            willChange: 'transform',
+            transform: 'translateZ(0) scale(1.1)',
+          }}
+        >
+          <source src="/hf_20260217_030345_246c0224-10a4-422c-b324-070b7c0eceda.mp4" type="video/mp4" />
+        </video>
+        {/* Dark overlay to blend video with quantum grid */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#030712]/60 via-[#030712]/40 to-[#030712]/80 transform-gpu" />
+      </div>
+      
+      {/* ═══ Layer 1: Deep Ambient Blobs (GPU-Accelerated) ═══ */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden gpu-layer">
+        <motion.div
+          className="absolute w-[800px] h-[800px] rounded-full transform-gpu"
+          style={{
+            background: 'radial-gradient(circle, rgba(79,70,229,0.15) 0%, transparent 70%)',
+            left: '-10%',
+            top: '-20%',
+            filter: 'blur(80px)',
+            willChange: 'transform',
+          }}
+          animate={{
+            x: [0, 150, 50, 0],
+            y: [0, 100, -50, 0],
+            scale: [1, 1.2, 0.9, 1],
+            rotate: [0, 45, -20, 0],
+          }}
+          transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
         />
-        <div
-          className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: '6s' }}
+        <motion.div
+          className="absolute w-[600px] h-[600px] rounded-full transform-gpu"
+          style={{
+            background: 'radial-gradient(circle, rgba(0,217,255,0.12) 0%, transparent 70%)',
+            right: '-5%',
+            bottom: '-10%',
+            filter: 'blur(60px)',
+            willChange: 'transform',
+          }}
+          animate={{
+            x: [0, -100, 80, 0],
+            y: [0, -80, 60, 0],
+            scale: [1, 0.8, 1.3, 1],
+            rotate: [0, -30, 60, 0],
+          }}
+          transition={{ duration: 50, repeat: Infinity, ease: 'linear' }}
+        />
+        <motion.div
+          className="absolute w-[500px] h-[500px] rounded-full transform-gpu"
+          style={{
+            background: 'radial-gradient(circle, rgba(236,72,153,0.1) 0%, transparent 70%)',
+            left: '40%',
+            top: '60%',
+            filter: 'blur(70px)',
+            willChange: 'transform',
+          }}
+          animate={{
+            x: [0, 80, -60, 0],
+            y: [0, -100, 50, 0],
+            scale: [1, 1.1, 0.85, 1],
+          }}
+          transition={{ duration: 45, repeat: Infinity, ease: 'linear' }}
         />
       </div>
 
-      {/* Back button */}
+      {/* ═══ Layer 2: 3D Isometric Quantum Grid ═══ */}
+      <motion.div 
+        className="fixed inset-0 pointer-events-none"
+        style={{ perspective: '1000px' }}
+      >
+        <motion.div
+          className="absolute inset-0"
+          style={{ transformStyle: 'preserve-3d' }}
+          animate={{
+            rotateX: [2, -2, 2],
+            rotateY: [-3, 3, -3],
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <svg className="absolute inset-0 w-full h-full opacity-30">
+            <defs>
+              <pattern id="quantumGrid" width="80" height="80" patternUnits="userSpaceOnUse">
+                <path 
+                  d="M 80 0 L 0 0 0 80" 
+                  fill="none" 
+                  stroke="url(#gridLineGradient)" 
+                  strokeWidth="0.5"
+                />
+                <circle cx="0" cy="0" r="1.5" fill="rgba(0,217,255,0.5)" />
+              </pattern>
+              <linearGradient id="gridLineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="rgba(0,217,255,0.4)" />
+                <stop offset="50%" stopColor="rgba(139,92,246,0.3)" />
+                <stop offset="100%" stopColor="rgba(0,217,255,0.4)" />
+              </linearGradient>
+              <radialGradient id="gridFadeRadial" cx="50%" cy="50%" r="60%">
+                <stop offset="0%" stopColor="white" stopOpacity="1" />
+                <stop offset="100%" stopColor="white" stopOpacity="0" />
+              </radialGradient>
+              <mask id="quantumMask">
+                <rect width="100%" height="100%" fill="url(#gridFadeRadial)" />
+              </mask>
+            </defs>
+            <motion.rect 
+              width="200%" 
+              height="200%" 
+              x="-50%"
+              y="-50%"
+              fill="url(#quantumGrid)" 
+              mask="url(#quantumMask)"
+              animate={{ 
+                x: ['-50%', '-30%', '-50%'],
+                y: ['-50%', '-30%', '-50%'],
+              }}
+              transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
+            />
+          </svg>
+        </motion.div>
+      </motion.div>
+
+      {/* ═══ Lumina Avatar Bubble (Near Hexagon) ═══ */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.5, x: 100 }}
+        animate={{ opacity: 1, scale: 1, x: 0 }}
+        transition={{ delay: 0.3, type: 'spring', stiffness: 100 }}
+        className="fixed top-1/2 right-[8%] -translate-y-1/2 z-20 hidden lg:block"
+      >
+        <motion.div
+          animate={{ y: [0, -15, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          className="relative"
+        >
+          {/* Glass bubble */}
+          <div className={cn(
+            "size-28 rounded-full backdrop-blur-2xl flex items-center justify-center",
+            "border-2 transition-all duration-700",
+            error 
+              ? "border-red-500/50 shadow-[0_0_50px_rgba(239,68,68,0.3),inset_0_0_30px_rgba(239,68,68,0.1)]" 
+              : isComplete 
+                ? "border-green-500/50 shadow-[0_0_50px_rgba(34,197,94,0.3),inset_0_0_30px_rgba(34,197,94,0.1)]"
+                : "border-cyan-500/30 shadow-[0_0_50px_rgba(0,217,255,0.25),inset_0_0_30px_rgba(0,217,255,0.08)]",
+            "bg-slate-900/40"
+          )}>
+            <motion.div
+              animate={!error && !isComplete ? { 
+                scale: [1, 1.1, 1],
+                rotate: [0, 5, -5, 0],
+              } : {}}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <Bot className={cn(
+                "size-12 transition-colors duration-500",
+                error ? "text-red-400" : isComplete ? "text-green-400" : "text-cyan-400"
+              )} />
+            </motion.div>
+          </div>
+          
+          {/* Projection beam */}
+          <motion.div
+            className="absolute top-1/2 -left-32 w-32 h-1"
+            style={{
+              background: error 
+                ? 'linear-gradient(90deg, transparent, rgba(239,68,68,0.5))' 
+                : isComplete
+                  ? 'linear-gradient(90deg, transparent, rgba(34,197,94,0.5))'
+                  : 'linear-gradient(90deg, transparent, rgba(0,217,255,0.5))',
+            }}
+            animate={{ opacity: [0.3, 0.8, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+          
+          {/* Status label */}
+          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+            <span className={cn(
+              "text-xs font-mono tracking-widest uppercase px-3 py-1 rounded-full",
+              "bg-slate-900/80 backdrop-blur-sm border",
+              error ? "text-red-400 border-red-500/30" : 
+              isComplete ? "text-green-400 border-green-500/30" : 
+              "text-cyan-400 border-cyan-500/30"
+            )}>
+              {error ? "Error" : isComplete ? "Complete" : "Projecting"}
+            </span>
+          </div>
+        </motion.div>
+      </motion.div>
+
+      {/* ═══ Observer Badge (Top Left) ═══ */}
+      <motion.div 
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="fixed top-6 left-6 z-30 flex items-center gap-3"
+      >
+        <motion.div 
+          className={cn(
+            "size-12 rounded-xl flex items-center justify-center transition-all duration-500",
+            "backdrop-blur-xl border",
+            error ? "border-red-500/50 bg-red-500/10" :
+            isComplete ? "border-green-500/50 bg-green-500/10" :
+            "border-cyan-500/30 bg-cyan-500/10"
+          )}
+          animate={!error && !isComplete ? { 
+            boxShadow: [
+              '0 0 20px rgba(0,217,255,0.3)',
+              '0 0 40px rgba(139,92,246,0.3)',
+              '0 0 20px rgba(0,217,255,0.3)',
+            ]
+          } : {}}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          <Bot className={cn(
+            "size-6",
+            error ? "text-red-400" : isComplete ? "text-green-400" : "text-cyan-400"
+          )} />
+        </motion.div>
+        <div className="hidden sm:block">
+          <div className="text-[10px] text-slate-600 font-mono uppercase tracking-[0.2em]">Observer</div>
+          <div className={cn(
+            "text-sm font-mono tracking-wide",
+            error ? "text-red-400" : isComplete ? "text-green-400" : "text-cyan-400"
+          )}>
+            {error ? "ERROR DETECTED" : isComplete ? "MISSION COMPLETE" : "MONITORING..."}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ═══ Exit Button ═══ */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="absolute top-4 left-4 z-20"
+        className="fixed top-6 right-6 z-30"
       >
-        <Button variant="ghost" size="sm" onClick={goBackToHome}>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={goBackToHome}
+          className="text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/10 font-mono tracking-wider border border-transparent hover:border-cyan-500/20"
+        >
           <ArrowLeft className="size-4 mr-2" />
-          {t('generation.backToHome')}
+          EXIT
         </Button>
       </motion.div>
 
-      <div className="z-10 w-full max-w-lg space-y-8 flex flex-col items-center">
+      {/* ═══ Central Quantum Core ═══ */}
+      <div className="relative z-10 flex flex-col items-center justify-center px-4">
+        
+        {/* Interactive Hexagon with Data-Dissolve */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full"
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 100 }}
+          className="relative mb-8"
         >
-          <Card className="relative overflow-hidden border-muted/40 shadow-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl min-h-[400px] flex flex-col items-center justify-center p-8 md:p-12">
-            {/* Progress Dots */}
-            <div className="absolute top-6 left-0 right-0 flex justify-center gap-2">
-              {activeSteps.map((step, idx) => (
-                <div
-                  key={step.id}
-                  className={cn(
-                    'h-1.5 rounded-full transition-all duration-500',
-                    idx < currentStepIndex
-                      ? 'w-1.5 bg-blue-500/30'
-                      : idx === currentStepIndex
-                        ? 'w-8 bg-blue-500'
-                        : 'w-1.5 bg-muted/50',
-                  )}
-                />
-              ))}
-            </div>
+          <svg width="280" height="240" viewBox="0 0 280 240" className="relative z-10">
+            {/* Outer hex glow */}
+            <motion.polygon
+              points="140,10 260,65 260,175 140,230 20,175 20,65"
+              fill="none"
+              stroke="url(#hexOuterGlow)"
+              strokeWidth="2"
+              opacity="0.3"
+              animate={{ 
+                scale: [1, 1.05, 1],
+                opacity: [0.2, 0.4, 0.2],
+              }}
+              transition={{ duration: 3, repeat: Infinity }}
+            />
+            {/* Main hex border with dash animation */}
+            <motion.polygon
+              points="140,20 250,70 250,170 140,220 30,170 30,70"
+              fill="none"
+              stroke="url(#hexGradientMain)"
+              strokeWidth="1.5"
+              strokeDasharray="8 4"
+              animate={{ strokeDashoffset: [0, -24] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+            />
+            {/* Inner hex */}
+            <motion.polygon
+              points="140,40 230,80 230,160 140,200 50,160 50,80"
+              fill="rgba(0,217,255,0.02)"
+              stroke="rgba(0,217,255,0.2)"
+              strokeWidth="0.5"
+              animate={{ opacity: [0.5, 0.8, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+            {/* Data nodes */}
+            {[[140, 20], [250, 70], [250, 170], [140, 220], [30, 170], [30, 70]].map(([x, y], i) => (
+              <motion.circle
+                key={i}
+                cx={x}
+                cy={y}
+                r="4"
+                fill="url(#nodeGradient)"
+                animate={{ 
+                  r: [3, 5, 3],
+                  opacity: [0.6, 1, 0.6],
+                }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
+              />
+            ))}
+            <defs>
+              <linearGradient id="hexGradientMain" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#00d9ff" />
+                <stop offset="50%" stopColor="#8b5cf6" />
+                <stop offset="100%" stopColor="#ec4899" />
+              </linearGradient>
+              <linearGradient id="hexOuterGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#00d9ff" stopOpacity="0.5" />
+                <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.5" />
+              </linearGradient>
+              <radialGradient id="nodeGradient">
+                <stop offset="0%" stopColor="#00d9ff" />
+                <stop offset="100%" stopColor="#8b5cf6" />
+              </radialGradient>
+            </defs>
+          </svg>
 
-            {/* Central Content */}
-            <div className="flex-1 flex flex-col items-center justify-center w-full space-y-8 mt-4">
-              {/* Icon / Visualizer Container */}
-              <div className="relative size-48 flex items-center justify-center">
-                <AnimatePresence mode="popLayout">
-                  {error ? (
-                    <motion.div
-                      key="error"
-                      initial={{ scale: 0.5, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="size-32 rounded-full bg-red-500/10 flex items-center justify-center border-2 border-red-500/20"
-                    >
-                      <AlertCircle className="size-16 text-red-500" />
-                    </motion.div>
-                  ) : isComplete ? (
-                    <motion.div
-                      key="complete"
-                      initial={{ scale: 0.5, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="size-32 rounded-full bg-green-500/10 flex items-center justify-center border-2 border-green-500/20"
-                    >
-                      <CheckCircle2 className="size-16 text-green-500" />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key={activeStep.id}
-                      initial={{ scale: 0.8, opacity: 0, filter: 'blur(10px)' }}
-                      animate={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
-                      exit={{ scale: 1.2, opacity: 0, filter: 'blur(10px)' }}
-                      transition={{ duration: 0.4 }}
-                      className="absolute inset-0 flex items-center justify-center"
-                    >
-                      <StepVisualizer
-                        stepId={activeStep.id}
-                        outlines={streamingOutlines}
-                        webSearchSources={webSearchSources}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+          {/* Glitch Title inside hex */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <motion.h1 
+              className={cn(
+                "text-xl md:text-2xl font-mono font-bold tracking-[0.15em] uppercase text-center px-4",
+                "relative"
+              )}
+              style={{ 
+                color: error ? '#ef4444' : isComplete ? '#22c55e' : '#00d9ff',
+                textShadow: error 
+                  ? '0 0 20px rgba(239,68,68,0.5)' 
+                  : isComplete 
+                    ? '0 0 20px rgba(34,197,94,0.5)'
+                    : '0 0 20px rgba(0,217,255,0.5), 0 0 40px rgba(139,92,246,0.3)',
+              }}
+            >
+              {/* Glitch layers */}
+              <span className="relative">
+                {error ? 'GENERATION FAILED' : isComplete ? 'COMPLETE' : t(activeStep.title).toUpperCase()}
+                <motion.span
+                  className="absolute inset-0 text-pink-500 opacity-0"
+                  aria-hidden
+                  animate={{ 
+                    opacity: [0, 0.8, 0],
+                    x: [-2, 2, -2],
+                  }}
+                  transition={{ duration: 0.1, repeat: Infinity, repeatDelay: 3 }}
+                >
+                  {error ? 'GENERATION FAILED' : isComplete ? 'COMPLETE' : t(activeStep.title).toUpperCase()}
+                </motion.span>
+                <motion.span
+                  className="absolute inset-0 text-cyan-300 opacity-0"
+                  aria-hidden
+                  animate={{ 
+                    opacity: [0, 0.6, 0],
+                    x: [2, -2, 2],
+                  }}
+                  transition={{ duration: 0.1, repeat: Infinity, repeatDelay: 3.1 }}
+                >
+                  {error ? 'GENERATION FAILED' : isComplete ? 'COMPLETE' : t(activeStep.title).toUpperCase()}
+                </motion.span>
+              </span>
+            </motion.h1>
+            
+            {/* Scanline effect */}
+            <motion.div
+              className="absolute inset-0 pointer-events-none overflow-hidden opacity-20"
+              style={{
+                background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,217,255,0.1) 2px, rgba(0,217,255,0.1) 4px)',
+              }}
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 0.5, repeat: Infinity }}
+            />
 
-              {/* Text Content */}
-              <div className="space-y-3 max-w-sm mx-auto">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={error ? 'error' : isComplete ? 'done' : activeStep.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="space-y-2"
-                  >
-                    <h2 className="text-2xl font-bold tracking-tight">
-                      {error
-                        ? t('generation.generationFailed')
-                        : isComplete
-                          ? t('generation.generationComplete')
-                          : t(activeStep.title)}
-                    </h2>
-                    <p className="text-muted-foreground text-base">
-                      {error
-                        ? error
-                        : isComplete
-                          ? t('generation.classroomReady')
-                          : statusMessage || t(activeStep.description)}
-                    </p>
-                  </motion.div>
-                </AnimatePresence>
-
-                {/* Truncation warning indicator */}
-                <AnimatePresence>
-                  {truncationWarnings.length > 0 && !error && !isComplete && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0 }}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 500,
-                        damping: 30,
-                      }}
-                      className="flex justify-center"
-                    >
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <motion.button
-                            type="button"
-                            animate={{
-                              boxShadow: [
-                                '0 0 0 0 rgba(251, 191, 36, 0), 0 0 0 0 rgba(251, 191, 36, 0)',
-                                '0 0 16px 4px rgba(251, 191, 36, 0.12), 0 0 4px 1px rgba(251, 191, 36, 0.08)',
-                                '0 0 0 0 rgba(251, 191, 36, 0), 0 0 0 0 rgba(251, 191, 36, 0)',
-                              ],
-                            }}
-                            transition={{
-                              duration: 3,
-                              repeat: Infinity,
-                              ease: 'easeInOut',
-                            }}
-                            className="relative size-7 rounded-full flex items-center justify-center cursor-default
-                                       bg-gradient-to-br from-amber-400/15 to-orange-400/10
-                                       border border-amber-400/25 hover:border-amber-400/40
-                                       hover:from-amber-400/20 hover:to-orange-400/15
-                                       transition-colors duration-300
-                                       focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30"
-                          >
-                            <AlertTriangle
-                              className="size-3.5 text-amber-500 dark:text-amber-400"
-                              strokeWidth={2.5}
-                            />
-                          </motion.button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" sideOffset={6}>
-                          <div className="space-y-1 py-0.5">
-                            {truncationWarnings.map((w, i) => (
-                              <p key={i} className="text-xs leading-relaxed">
-                                {w}
-                              </p>
-                            ))}
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-          </Card>
+            <p className="text-slate-500 font-mono text-xs md:text-sm mt-3 max-w-xs text-center px-4 tracking-wide">
+              {error ? error : isComplete ? t('generation.classroomReady') : statusMessage || t(activeStep.description)}
+            </p>
+          </div>
         </motion.div>
 
-        {/* Footer Action */}
-        <div className="h-16 flex items-center justify-center w-full">
-          <AnimatePresence>
-            {error ? (
+        {/* ═══ Floating Status Pods ═══ */}
+        <div className="flex flex-wrap justify-center gap-4 md:gap-6">
+          {/* Pod 1: SLIDES - Float Up */}
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ 
+              opacity: 1, 
+              y: 0,
+            }}
+            transition={{ delay: 0.2 }}
+          >
+            <motion.div
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              className={cn(
+                "w-32 md:w-40 h-40 md:h-48 rounded-2xl backdrop-blur-xl p-4 flex flex-col items-center justify-center",
+                "border transition-all duration-500",
+                activeStep.id === 'slide-content' || activeStep.id === 'outline'
+                  ? "border-cyan-500/50 bg-cyan-500/5 shadow-[0_0_40px_rgba(0,217,255,0.15)]"
+                  : "border-slate-700/30 bg-slate-900/30 hover:border-cyan-500/30"
+              )}
+            >
+              <div className="text-[10px] font-mono text-slate-500 mb-3 uppercase tracking-[0.2em]">Slides</div>
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-xs"
+                animate={activeStep.id === 'slide-content' ? { 
+                  scale: [1, 1.1, 1],
+                } : {}}
+                transition={{ duration: 1.5, repeat: Infinity }}
               >
-                <Button size="lg" variant="outline" className="w-full h-12" onClick={goBackToHome}>
-                  {t('generation.goBackAndRetry')}
-                </Button>
+                <svg width="56" height="56" viewBox="0 0 56 56" className="text-cyan-400">
+                  <rect x="6" y="6" width="44" height="34" rx="3" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+                  <rect x="12" y="12" width="18" height="10" rx="1" fill="currentColor" opacity="0.2"/>
+                  <motion.line 
+                    x1="12" y1="26" x2="38" y2="26" 
+                    stroke="currentColor" strokeWidth="1.5" opacity="0.4"
+                    animate={{ pathLength: [0, 1] }}
+                    transition={{ duration: 1, repeat: Infinity }}
+                  />
+                  <line x1="12" y1="32" x2="30" y2="32" stroke="currentColor" strokeWidth="1" opacity="0.3"/>
+                  <rect x="20" y="44" width="16" height="4" rx="2" fill="currentColor" opacity="0.2"/>
+                </svg>
               </motion.div>
-            ) : !isComplete ? (
+              <div className={cn(
+                "text-xs font-mono mt-3 transition-colors",
+                activeStep.id === 'slide-content' || activeStep.id === 'outline' ? "text-cyan-400" : "text-slate-600"
+              )}>
+                {streamingOutlines ? `${streamingOutlines.length} slides` : '—'}
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Pod 2: QUIZZES - Float Down */}
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <motion.div
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+              className={cn(
+                "w-32 md:w-40 h-40 md:h-48 rounded-2xl backdrop-blur-xl p-4 flex flex-col items-center justify-center",
+                "border transition-all duration-500",
+                activeStep.id === 'actions'
+                  ? "border-violet-500/50 bg-violet-500/5 shadow-[0_0_40px_rgba(139,92,246,0.15)]"
+                  : "border-slate-700/30 bg-slate-900/30 hover:border-violet-500/30"
+              )}
+            >
+              <div className="text-[10px] font-mono text-slate-500 mb-3 uppercase tracking-[0.2em]">Quizzes</div>
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex items-center gap-3 text-sm text-muted-foreground/50 font-medium uppercase tracking-widest"
+                animate={activeStep.id === 'actions' ? { rotate: [0, 10, -10, 0] } : {}}
+                transition={{ duration: 2, repeat: Infinity }}
               >
-                <Sparkles className="size-3 animate-pulse" />
-                {t('generation.aiWorking')}
-                {generatedAgents.length > 0 && !showAgentReveal && (
-                  <button
-                    onClick={() => setShowAgentReveal(true)}
-                    className="ml-2 flex items-center gap-1.5 rounded-full border border-purple-300/30 bg-purple-500/10 px-3 py-1 text-xs font-medium normal-case tracking-normal text-purple-400 transition-colors hover:bg-purple-500/20 hover:text-purple-300"
-                  >
-                    <Bot className="size-3" />
-                    {t('generation.viewAgents')}
-                  </button>
-                )}
+                <svg width="56" height="56" viewBox="0 0 56 56" className="text-violet-400">
+                  <circle cx="28" cy="28" r="22" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+                  <motion.path
+                    d="M16 28 L24 36 L40 20"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: activeStep.id === 'actions' ? [0, 1, 1, 0] : 0.4 }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                </svg>
               </motion.div>
-            ) : null}
-          </AnimatePresence>
+              <div className={cn(
+                "text-xs font-mono mt-3 transition-colors",
+                activeStep.id === 'actions' ? "text-violet-400" : "text-slate-600"
+              )}>
+                Processing
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Pod 3: AGENTS - Subtle Rotate */}
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <motion.div
+              animate={{ 
+                y: [-4, 4, -4],
+                rotate: [-1, 1, -1],
+              }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+              className={cn(
+                "w-32 md:w-40 h-40 md:h-48 rounded-2xl backdrop-blur-xl p-4 flex flex-col items-center justify-center",
+                "border transition-all duration-500",
+                activeStep.id === 'agents'
+                  ? "border-pink-500/50 bg-pink-500/5 shadow-[0_0_40px_rgba(236,72,153,0.15)]"
+                  : "border-slate-700/30 bg-slate-900/30 hover:border-pink-500/30"
+              )}
+            >
+              <div className="text-[10px] font-mono text-slate-500 mb-3 uppercase tracking-[0.2em]">Agents</div>
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
+              >
+                <svg width="56" height="56" viewBox="0 0 56 56" className="text-pink-400">
+                  <circle cx="28" cy="28" r="5" fill="currentColor"/>
+                  <circle cx="28" cy="10" r="4" fill="currentColor" opacity="0.6"/>
+                  <circle cx="44" cy="37" r="4" fill="currentColor" opacity="0.6"/>
+                  <circle cx="12" cy="37" r="4" fill="currentColor" opacity="0.6"/>
+                  <line x1="28" y1="28" x2="28" y2="14" stroke="currentColor" strokeWidth="1" opacity="0.4"/>
+                  <line x1="28" y1="28" x2="40" y2="35" stroke="currentColor" strokeWidth="1" opacity="0.4"/>
+                  <line x1="28" y1="28" x2="16" y2="35" stroke="currentColor" strokeWidth="1" opacity="0.4"/>
+                </svg>
+              </motion.div>
+              <div className={cn(
+                "text-xs font-mono mt-3 transition-colors",
+                activeStep.id === 'agents' ? "text-pink-400" : "text-slate-600"
+              )}>
+                {generatedAgents.length > 0 ? `${generatedAgents.length} agents` : '—'}
+              </div>
+            </motion.div>
+          </motion.div>
         </div>
+
+        {/* Error Action Button */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mt-8"
+            >
+              <Button 
+                onClick={goBackToHome}
+                className="bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 font-mono tracking-wider"
+              >
+                {t('generation.goBackAndRetry')}
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
+
+      {/* ═══ Glass Terminal (Bottom) ═══ */}
+      <motion.div
+        initial={{ opacity: 0, y: 60 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, type: 'spring', stiffness: 100 }}
+        className="fixed bottom-0 left-0 right-0 z-20 p-4"
+      >
+        <div className="max-w-2xl mx-auto rounded-t-2xl overflow-hidden backdrop-blur-2xl bg-slate-900/60 border border-slate-700/30 border-b-0 shadow-[0_-10px_60px_rgba(0,0,0,0.3)]">
+          {/* Terminal header */}
+          <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-700/30 bg-slate-800/30">
+            <div className="flex gap-1.5">
+              <div className="size-2.5 rounded-full bg-red-500/80" />
+              <div className="size-2.5 rounded-full bg-yellow-500/80" />
+              <div className="size-2.5 rounded-full bg-green-500/80" />
+            </div>
+            <span className="text-[10px] font-mono text-slate-500 ml-2 tracking-wider">agent_logs.terminal</span>
+            <motion.div 
+              className="ml-auto size-2 rounded-full bg-cyan-400"
+              animate={{ opacity: [1, 0.3, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+            />
+          </div>
+          {/* Terminal content */}
+          <div className="p-4 font-mono text-[11px] space-y-1.5 max-h-28 overflow-hidden">
+            {terminalLogs.map((log, i) => (
+              <motion.div
+                key={`${log}-${i}`}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.05, duration: 0.2 }}
+                className={cn(
+                  "tracking-wide",
+                  log.includes('ERROR') && "text-red-400",
+                  log.includes('COMPLETE') && "text-green-400",
+                  log.includes('ACTIVE') && "text-cyan-400",
+                  !log.includes('ERROR') && !log.includes('COMPLETE') && !log.includes('ACTIVE') && "text-slate-500",
+                )}
+              >
+                {log}
+              </motion.div>
+            ))}
+            <div className="flex items-center gap-1 text-cyan-400">
+              <span className="text-slate-600">{'>'}</span>
+              <motion.span
+                animate={{ opacity: [1, 0] }}
+                transition={{ duration: 0.5, repeat: Infinity }}
+              >
+                █
+              </motion.span>
+            </div>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Agent Reveal Modal */}
       <AgentRevealModal
@@ -1079,10 +1464,9 @@ export default function GenerationPreviewPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-[100dvh] w-full bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center">
-          <div className="animate-pulse space-y-4 text-center">
-            <div className="h-8 w-48 bg-muted rounded mx-auto" />
-            <div className="h-4 w-64 bg-muted rounded mx-auto" />
+        <div className="min-h-[100dvh] w-full bg-[#050a15] flex items-center justify-center">
+          <div className="text-cyan-400 font-mono text-sm tracking-wider animate-pulse">
+            LOADING WORKBENCH...
           </div>
         </div>
       }

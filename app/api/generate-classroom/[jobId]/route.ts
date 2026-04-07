@@ -9,7 +9,7 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('ClassroomJob API');
 
-export const dynamic = 'force-dynamic';
+// Dynamic rendering handled by cacheComponents
 
 export async function GET(req: NextRequest, context: { params: Promise<{ jobId: string }> }) {
   let resolvedJobId: string | undefined;

@@ -6,15 +6,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-/** Predefined avatar options */
+/** Predefined avatar options - Custom PNG avatars */
 export const AVATAR_OPTIONS = [
-  '/avatars/user.png',
-  '/avatars/teacher-2.png',
-  '/avatars/assist-2.png',
-  '/avatars/clown-2.png',
-  '/avatars/curious-2.png',
-  '/avatars/note-taker-2.png',
-  '/avatars/thinker-2.png',
+  '/avatars/teacher.png',
+  '/avatars/assistant.jpg',
+  '/avatars/classclown.jpg',
+  '/avatars/curious.png',
+  '/avatars/notetaker.jpg',
+  '/avatars/thinker.jpg',
 ] as const;
 
 export interface UserProfileState {

@@ -18,6 +18,12 @@ import {
   Monitor,
   BotOff,
   ChevronUp,
+  Sparkles,
+  Menu,
+  X,
+  Mic,
+  Paperclip,
+  Bot,
 } from 'lucide-react';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { LanguageSwitcher } from '@/components/language-switcher';
@@ -42,6 +48,7 @@ import {
   getFirstSlideByStages,
 } from '@/lib/utils/stage-storage';
 import { ThumbnailSlide } from '@/components/slide-renderer/components/ThumbnailSlide';
+import { AuroraBackground } from '@/components/aurora-background';
 import type { Slide } from '@/lib/types/slides';
 import { useMediaGenerationStore } from '@/lib/store/media-generation';
 import { toast } from 'sonner';
@@ -54,6 +61,18 @@ const log = createLogger('Home');
 const WEB_SEARCH_STORAGE_KEY = 'webSearchEnabled';
 const LANGUAGE_STORAGE_KEY = 'generationLanguage';
 const RECENT_OPEN_STORAGE_KEY = 'recentClassroomsOpen';
+
+// Cycling placeholder prompts
+const PLACEHOLDER_PROMPTS = [
+  'Ask JaY about Quantum Physics...',
+  'Teach me Python from scratch...',
+  'Explain Machine Learning basics...',
+  'Help me understand Calculus...',
+  'What is Blockchain technology...',
+  'Describe the Solar System...',
+  'How does DNA replication work...',
+  'Explain Neural Networks...',
+];
 
 interface FormState {
   pdfFile: File | null;
@@ -75,6 +94,7 @@ function HomePage() {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(initialFormState);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [settingsSection, setSettingsSection] = useState<
     import('@/lib/types/settings').SettingsSection | undefined
   >(undefined);
@@ -125,25 +145,25 @@ function HomePage() {
     }
   }
 
-  const [themeOpen, setThemeOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [classrooms, setClassrooms] = useState<StageListItem[]>([]);
   const [thumbnails, setThumbnails] = useState<Record<string, Slide>>({});
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  const toolbarRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Close dropdowns when clicking outside
+  const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Input focus state for breathing glow
+  const [inputFocused, setInputFocused] = useState(false);
+  
+  // Cycling placeholder
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
   useEffect(() => {
-    if (!themeOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (toolbarRef.current && !toolbarRef.current.contains(e.target as Node)) {
-        setThemeOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [themeOpen]);
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % PLACEHOLDER_PROMPTS.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const loadClassrooms = async () => {
     try {
@@ -330,89 +350,121 @@ function HomePage() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex flex-col items-center p-4 pt-16 md:p-8 md:pt-16 overflow-x-hidden">
-      {/* ═══ Top-right pill (unchanged) ═══ */}
-      <div
-        ref={toolbarRef}
-        className="fixed top-4 right-4 z-50 flex items-center gap-1 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md px-2 py-1.5 rounded-full border border-gray-100/50 dark:border-gray-700/50 shadow-sm"
-      >
-        {/* Language Selector */}
-        <LanguageSwitcher onOpen={() => setThemeOpen(false)} />
+    <div className="min-h-[100dvh] w-full flex flex-col items-center overflow-x-hidden relative">
+      {/* ═══ Animated Aurora Background with Mouse Interaction ═══ */}
+      <AuroraBackground />
 
-        <div className="w-[1px] h-4 bg-gray-200 dark:bg-gray-700" />
+      {/* ═══ Side Drawer Navigation ═══ */}
+      <AnimatePresence>
+        {drawerOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+              onClick={() => setDrawerOpen(false)}
+            />
+            {/* Drawer Panel */}
+            <motion.aside
+              initial={{ x: -320, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -320, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed left-0 top-0 bottom-0 w-80 z-50 glass-heavy rounded-r-3xl p-6 flex flex-col"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-xl font-bold gradient-text">AskJaY</h2>
+                <button
+                  onClick={() => setDrawerOpen(false)}
+                  className="p-2 rounded-xl glass hover:glow-cyan transition-all"
+                >
+                  <X className="size-5" />
+                </button>
+              </div>
 
-        {/* Theme Selector */}
-        <div className="relative">
-          <button
-            onClick={() => {
-              setThemeOpen(!themeOpen);
-            }}
-            className="p-2 rounded-full text-gray-400 dark:text-gray-500 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all"
-          >
-            {theme === 'light' && <Sun className="w-4 h-4" />}
-            {theme === 'dark' && <Moon className="w-4 h-4" />}
-            {theme === 'system' && <Monitor className="w-4 h-4" />}
-          </button>
-          {themeOpen && (
-            <div className="absolute top-full mt-2 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 min-w-[140px]">
-              <button
-                onClick={() => {
-                  setTheme('light');
-                  setThemeOpen(false);
-                }}
-                className={cn(
-                  'w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2',
-                  theme === 'light' &&
-                    'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
-                )}
-              >
-                <Sun className="w-4 h-4" />
-                {t('settings.themeOptions.light')}
-              </button>
-              <button
-                onClick={() => {
-                  setTheme('dark');
-                  setThemeOpen(false);
-                }}
-                className={cn(
-                  'w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2',
-                  theme === 'dark' &&
-                    'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
-                )}
-              >
-                <Moon className="w-4 h-4" />
-                {t('settings.themeOptions.dark')}
-              </button>
-              <button
-                onClick={() => {
-                  setTheme('system');
-                  setThemeOpen(false);
-                }}
-                className={cn(
-                  'w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2',
-                  theme === 'system' &&
-                    'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
-                )}
-              >
-                <Monitor className="w-4 h-4" />
-                {t('settings.themeOptions.system')}
-              </button>
-            </div>
-          )}
-        </div>
+              {/* Navigation Items */}
+              <nav className="flex-1 space-y-2">
+                <button
+                  onClick={() => {
+                    setDrawerOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl glass hover:glow-cyan transition-all text-left"
+                >
+                  <Sparkles className="size-5 text-neon-cyan" />
+                  <span className="font-medium">New Session</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setDrawerOpen(false);
+                    setSettingsOpen(true);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl glass hover:glow-violet transition-all text-left"
+                >
+                  <Settings className="size-5 text-neon-violet" />
+                  <span className="font-medium">Settings</span>
+                </button>
+              </nav>
 
-        <div className="w-[1px] h-4 bg-gray-200 dark:bg-gray-700" />
+              {/* Theme Switcher in Drawer */}
+              <div className="pt-4 border-t border-glass-border">
+                <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">Theme</p>
+                <div className="flex gap-2">
+                  {(['light', 'dark', 'system'] as const).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setTheme(t)}
+                      className={cn(
+                        'flex-1 p-3 rounded-xl glass transition-all',
+                        theme === t ? 'glow-cyan ring-1 ring-neon-cyan' : 'hover:glass-hover',
+                      )}
+                    >
+                      {t === 'light' && <Sun className="size-4 mx-auto" />}
+                      {t === 'dark' && <Moon className="size-4 mx-auto" />}
+                      {t === 'system' && <Monitor className="size-4 mx-auto" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
 
-        {/* Settings Button */}
-        <div className="relative">
-          <button
-            onClick={() => setSettingsOpen(true)}
-            className="p-2 rounded-full text-gray-400 dark:text-gray-500 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all group"
-          >
-            <Settings className="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" />
-          </button>
+      {/* ═══ Top Navigation Bar ═══ */}
+      <div className="fixed top-0 left-0 right-0 z-30 p-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          {/* Left: Menu + Logo */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="p-3 rounded-2xl glass hover:glow-cyan transition-all"
+            >
+              <Menu className="size-5" />
+            </button>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="hidden sm:flex items-center gap-2"
+            >
+              <span className="text-2xl font-bold gradient-text">AskJaY</span>
+            </motion.div>
+          </div>
+
+          {/* Right: Controls */}
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher onOpen={() => {}} />
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="p-3 rounded-2xl glass hover:glow-violet transition-all group"
+            >
+              <Settings className="size-5 group-hover:rotate-90 transition-transform duration-500" />
+            </button>
+          </div>
         </div>
       </div>
+
       <SettingsDialog
         open={settingsOpen}
         onOpenChange={(open) => {
@@ -422,136 +474,226 @@ function HomePage() {
         initialSection={settingsSection}
       />
 
-      {/* ═══ Background Decor ═══ */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
-          className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: '4s' }}
-        />
-        <div
-          className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: '6s' }}
-        />
-      </div>
+      {/* Hidden file input for PDF */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) updateForm('pdfFile', file);
+          e.target.value = '';
+        }}
+      />
 
-      {/* ═══ Hero section: title + input (centered, wider) ═══ */}
+      {/* ═══ Hero Section ═══ */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
+        transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
         className={cn(
-          'relative z-20 w-full max-w-[800px] flex flex-col items-center',
-          classrooms.length === 0 ? 'justify-center min-h-[calc(100dvh-8rem)]' : 'mt-[10vh]',
+          'relative z-20 w-full max-w-[900px] flex flex-col items-center px-4',
+          classrooms.length === 0 ? 'justify-center min-h-[calc(100dvh-8rem)]' : 'mt-28',
         )}
       >
-        {/* ── Logo ── */}
-        <motion.img
-          src="/logo-horizontal.png"
-          alt="OpenMAIC"
-          initial={{ opacity: 0, scale: 0.9 }}
+        {/* ── Animated Logo ── */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{
-            delay: 0.1,
-            type: 'spring',
-            stiffness: 200,
-            damping: 20,
-          }}
-          className="h-12 md:h-16 mb-2 -ml-2 md:-ml-3"
-        />
+          transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 20 }}
+          className="mb-4"
+        >
+          <h1 className="text-5xl md:text-7xl font-bold gradient-text text-glow-cyan">
+            AskJaY
+          </h1>
+        </motion.div>
 
         {/* ── Slogan ── */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.25 }}
-          className="text-sm text-muted-foreground/60 mb-8"
+          transition={{ delay: 0.4 }}
+          className="text-lg text-muted-foreground/70 mb-12 text-center"
         >
-          {t('home.slogan')}
+          Your AI-powered learning companion
         </motion.p>
 
-        {/* ── Unified input area ── */}
+        {/* ═══ FLOATING CAPSULE INPUT ═══ */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.35 }}
-          className="w-full"
+          initial={{ opacity: 0, y: 40, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ 
+            delay: 0.5, 
+            duration: 0.6,
+            type: 'spring',
+            stiffness: 200,
+            damping: 25
+          }}
+          className="w-full max-w-[800px]"
         >
-          <div className="w-full rounded-2xl border border-border/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-xl shadow-black/[0.03] dark:shadow-black/20 transition-shadow focus-within:shadow-2xl focus-within:shadow-violet-500/[0.06]">
-            {/* ── Greeting + Profile + Agents ── */}
-            <div className="relative z-20 flex items-start justify-between">
-              <GreetingBar />
-              <div className="pr-3 pt-3.5 shrink-0">
-                <AgentBar />
-              </div>
-            </div>
-
-            {/* Textarea */}
-            <textarea
-              ref={textareaRef}
-              placeholder={t('upload.requirementPlaceholder')}
-              className="w-full resize-none border-0 bg-transparent px-4 pt-1 pb-2 text-[13px] leading-relaxed placeholder:text-muted-foreground/40 focus:outline-none min-h-[140px] max-h-[300px]"
-              value={form.requirement}
-              onChange={(e) => updateForm('requirement', e.target.value)}
-              onKeyDown={handleKeyDown}
-              rows={4}
-            />
-
-            {/* Toolbar row */}
-            <div className="px-3 pb-3 flex items-end gap-2">
-              <div className="flex-1 min-w-0">
-                <GenerationToolbar
-                  language={form.language}
-                  onLanguageChange={(lang) => updateForm('language', lang)}
-                  webSearch={form.webSearch}
-                  onWebSearchChange={(v) => updateForm('webSearch', v)}
-                  onSettingsOpen={(section) => {
-                    setSettingsSection(section);
-                    setSettingsOpen(true);
-                  }}
-                  pdfFile={form.pdfFile}
-                  onPdfFileChange={(f) => updateForm('pdfFile', f)}
-                  onPdfError={setError}
-                />
-              </div>
-
-              {/* Voice input */}
-              <SpeechButton
-                size="md"
-                onTranscription={(text) => {
-                  setForm((prev) => {
-                    const next = prev.requirement + (prev.requirement ? ' ' : '') + text;
-                    updateRequirementCache(next);
-                    return { ...prev, requirement: next };
-                  });
-                }}
-              />
-
-              {/* Send button */}
-              <button
-                onClick={handleGenerate}
-                disabled={!canGenerate}
-                className={cn(
-                  'shrink-0 h-8 rounded-lg flex items-center justify-center gap-1.5 transition-all px-3',
-                  canGenerate
-                    ? 'bg-primary text-primary-foreground hover:opacity-90 shadow-sm cursor-pointer'
-                    : 'bg-muted text-muted-foreground/40 cursor-not-allowed',
-                )}
+          {/* Breathing Glow Container */}
+          <div
+            className={cn(
+              'relative rounded-full p-[2px] transition-all duration-500',
+              inputFocused 
+                ? 'animate-breathing-glow-focused' 
+                : 'animate-breathing-glow'
+            )}
+            style={{
+              backgroundImage: inputFocused
+                ? 'linear-gradient(90deg, #00ffff, #8b5cf6, #ff006e, #00ffff)'
+                : 'linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.2), rgba(255,255,255,0.1))',
+              backgroundSize: '300% 100%',
+            }}
+          >
+            {/* Inner Capsule */}
+            <div className="relative flex items-center gap-3 rounded-full bg-background/80 backdrop-blur-xl px-4 py-3 md:px-6 md:py-4">
+              
+              {/* Left: Lumina Avatar */}
+              <motion.div 
+                className="shrink-0"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <span className="text-xs font-medium">{t('toolbar.enterClassroom')}</span>
-                <ArrowUp className="size-3.5" />
-              </button>
+                <div className={cn(
+                  'size-10 md:size-12 rounded-full flex items-center justify-center transition-all duration-300',
+                  inputFocused ? 'glow-cyan' : ''
+                )}
+                style={{
+                  background: 'linear-gradient(135deg, #00d9ff 0%, #8b5cf6 50%, #ff006e 100%)',
+                }}>
+                  <Bot className="size-5 md:size-6 text-white" />
+                </div>
+              </motion.div>
+
+              {/* Center: Text Input */}
+              <div className="flex-1 min-w-0 relative">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={form.requirement}
+                  onChange={(e) => updateForm('requirement', e.target.value)}
+                  onFocus={() => setInputFocused(true)}
+                  onBlur={() => setInputFocused(false)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey && canGenerate) {
+                      e.preventDefault();
+                      handleGenerate();
+                    }
+                  }}
+                  className="w-full bg-transparent border-0 text-sm md:text-base font-medium placeholder:text-muted-foreground/40 focus:outline-none"
+                  placeholder=""
+                />
+                {/* Animated cycling placeholder */}
+                {!form.requirement && (
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={placeholderIndex}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 0.4, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                      className="absolute left-0 top-1/2 -translate-y-1/2 text-sm md:text-base text-muted-foreground pointer-events-none"
+                    >
+                      {PLACEHOLDER_PROMPTS[placeholderIndex]}
+                    </motion.span>
+                  </AnimatePresence>
+                )}
+              </div>
+
+              {/* Right: Action Icons Cluster */}
+              <div className="shrink-0 flex items-center gap-1 md:gap-2">
+                {/* File/PDF Attachment */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className={cn(
+                        'p-2 md:p-2.5 rounded-full transition-all duration-200',
+                        form.pdfFile 
+                          ? 'bg-neon-cyan/20 text-neon-cyan glow-cyan' 
+                          : 'hover:bg-white/10 text-muted-foreground hover:text-foreground'
+                      )}
+                    >
+                      <Paperclip className="size-4 md:size-5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {form.pdfFile ? form.pdfFile.name : 'Attach PDF'}
+                  </TooltipContent>
+                </Tooltip>
+
+                {/* Voice Input */}
+                <SpeechButton
+                  size="sm"
+                  onTranscription={(text) => {
+                    setForm((prev) => {
+                      const next = prev.requirement + (prev.requirement ? ' ' : '') + text;
+                      updateRequirementCache(next);
+                      return { ...prev, requirement: next };
+                    });
+                  }}
+                />
+
+                {/* Agent Config */}
+                <div className="hidden md:block">
+                  <AgentBar />
+                </div>
+
+                {/* Send Button */}
+                <motion.button
+                  onClick={handleGenerate}
+                  disabled={!canGenerate}
+                  whileHover={{ scale: canGenerate ? 1.05 : 1 }}
+                  whileTap={{ scale: canGenerate ? 0.95 : 1 }}
+                  className={cn(
+                    'p-2.5 md:p-3 rounded-full transition-all duration-300',
+                    canGenerate
+                      ? 'bg-gradient-to-r from-neon-cyan to-neon-violet text-white shadow-lg'
+                      : 'bg-muted/50 text-muted-foreground/40 cursor-not-allowed'
+                  )}
+                >
+                  <ArrowUp className="size-5 md:size-6" />
+                </motion.button>
+              </div>
             </div>
           </div>
+
+          {/* PDF File indicator */}
+          <AnimatePresence>
+            {form.pdfFile && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mt-3 flex items-center justify-center gap-2"
+              >
+                <span className="text-xs text-muted-foreground">📄 {form.pdfFile.name}</span>
+                <button
+                  onClick={() => updateForm('pdfFile', null)}
+                  className="text-xs text-destructive hover:underline"
+                >
+                  Remove
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
-        {/* ── Error ── */}
+        {/* Mobile Agent Bar */}
+        <div className="md:hidden mt-4">
+          <AgentBar />
+        </div>
+
+        {/* ── Error Message ── */}
         <AnimatePresence>
           {error && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="mt-3 w-full p-3 bg-destructive/10 border border-destructive/20 rounded-lg"
+              className="mt-4 w-full p-4 glass rounded-2xl border border-destructive/30"
             >
               <p className="text-sm text-destructive">{error}</p>
             </motion.div>
@@ -559,15 +701,15 @@ function HomePage() {
         </AnimatePresence>
       </motion.div>
 
-      {/* ═══ Recent classrooms — collapsible ═══ */}
+      {/* ═══ Recent Classrooms ═══ */}
       {classrooms.length > 0 && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="relative z-10 mt-10 w-full max-w-6xl flex flex-col items-center"
+          transition={{ delay: 0.7 }}
+          className="relative z-10 mt-16 w-full max-w-6xl px-4 flex flex-col items-center"
         >
-          {/* Trigger — divider-line with centered text */}
+          {/* Trigger */}
           <button
             onClick={() => {
               const next = !recentOpen;
@@ -578,24 +720,24 @@ function HomePage() {
                 /* ignore */
               }
             }}
-            className="group w-full flex items-center gap-4 py-2 cursor-pointer"
+            className="group w-full flex items-center gap-4 py-3"
           >
-            <div className="flex-1 h-px bg-border/40 group-hover:bg-border/70 transition-colors" />
-            <span className="shrink-0 flex items-center gap-2 text-[13px] text-muted-foreground/60 group-hover:text-foreground/70 transition-colors select-none">
-              <Clock className="size-3.5" />
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+            <span className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-full glass text-sm text-muted-foreground group-hover:glow-violet transition-all">
+              <Clock className="size-4" />
               {t('classroom.recentClassrooms')}
-              <span className="text-[11px] tabular-nums opacity-60">{classrooms.length}</span>
+              <span className="text-xs tabular-nums opacity-60">({classrooms.length})</span>
               <motion.div
                 animate={{ rotate: recentOpen ? 180 : 0 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                transition={{ duration: 0.3 }}
               >
-                <ChevronDown className="size-3.5" />
+                <ChevronDown className="size-4" />
               </motion.div>
             </span>
-            <div className="flex-1 h-px bg-border/40 group-hover:bg-border/70 transition-colors" />
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
           </button>
 
-          {/* Expandable content */}
+          {/* Grid */}
           <AnimatePresence>
             {recentOpen && (
               <motion.div
@@ -605,17 +747,13 @@ function HomePage() {
                 transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
                 className="w-full overflow-hidden"
               >
-                <div className="pt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-8">
+                <div className="pt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {classrooms.map((classroom, i) => (
                     <motion.div
                       key={classroom.id}
-                      initial={{ opacity: 0, y: 16 }}
+                      initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        delay: i * 0.04,
-                        duration: 0.35,
-                        ease: 'easeOut',
-                      }}
+                      transition={{ delay: i * 0.05, duration: 0.4 }}
                     >
                       <ClassroomCard
                         classroom={classroom}
@@ -637,10 +775,12 @@ function HomePage() {
         </motion.div>
       )}
 
-      {/* Footer — flows with content, at the very end */}
-      <div className="mt-auto pt-12 pb-4 text-center text-xs text-muted-foreground/40">
-        OpenMAIC Open Source Project
-      </div>
+      {/* ═══ Footer ═══ */}
+      <footer className="mt-auto pt-16 pb-6 text-center">
+        <p className="text-xs text-muted-foreground/40">
+          Powered by <span className="gradient-text font-medium">AskJaY</span>
+        </p>
+      </footer>
     </div>
   );
 }
@@ -728,7 +868,7 @@ function GreetingBar() {
   };
 
   return (
-    <div ref={containerRef} className="relative pl-4 pr-2 pt-3.5 pb-1 w-auto">
+    <div ref={containerRef} className="relative w-auto">
       <input
         ref={avatarInputRef}
         type="file"
@@ -737,28 +877,28 @@ function GreetingBar() {
         onChange={handleAvatarUpload}
       />
 
-      {/* ── Collapsed pill (always in flow) ── */}
+      {/* ── Collapsed pill ── */}
       {!open && (
         <div
-          className="flex items-center gap-2.5 cursor-pointer transition-all duration-200 group rounded-full px-2.5 py-1.5 border border-border/50 text-muted-foreground/70 hover:text-foreground hover:bg-muted/60 active:scale-[0.97]"
+          className="flex items-center gap-3 cursor-pointer transition-all duration-300 group rounded-2xl px-3 py-2 glass hover:glow-violet"
           onClick={() => setOpen(true)}
         >
           <div className="shrink-0 relative">
-            <div className="size-8 rounded-full overflow-hidden ring-[1.5px] ring-border/30 group-hover:ring-violet-400/60 dark:group-hover:ring-violet-400/40 transition-all duration-300">
+            <div className="size-9 rounded-full overflow-hidden ring-2 ring-neon-violet/30 group-hover:ring-neon-violet/60 transition-all">
               <img src={avatar} alt="" className="size-full object-cover" />
             </div>
-            <div className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-white dark:bg-slate-800 border border-border/40 flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity">
-              <Pencil className="size-[7px] text-muted-foreground/70" />
+            <div className="absolute -bottom-0.5 -right-0.5 size-4 rounded-full glass flex items-center justify-center">
+              <Pencil className="size-2 text-muted-foreground" />
             </div>
           </div>
           <div className="flex-1 min-w-0">
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="leading-none select-none flex items-center gap-1">
-                  <span className="text-[13px] font-semibold text-foreground/85 group-hover:text-foreground transition-colors">
+                <span className="leading-none select-none flex items-center gap-1.5">
+                  <span className="text-sm font-semibold">
                     {t('home.greetingWithName', { name: displayName })}
                   </span>
-                  <ChevronDown className="size-3 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors shrink-0" />
+                  <ChevronDown className="size-3.5 text-muted-foreground/50" />
                 </span>
               </TooltipTrigger>
               <TooltipContent side="bottom" sideOffset={4}>
@@ -769,20 +909,20 @@ function GreetingBar() {
         </div>
       )}
 
-      {/* ── Expanded panel (absolute, floating) ── */}
+      {/* ── Expanded panel ── */}
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -4, scale: 0.97 }}
+            initial={{ opacity: 0, y: -8, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+            exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-            className="absolute left-4 top-3.5 z-50 w-64"
+            className="absolute left-0 top-0 z-50 w-72"
           >
-            <div className="rounded-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm ring-1 ring-black/[0.04] dark:ring-white/[0.06] shadow-[0_1px_8px_-2px_rgba(0,0,0,0.06)] dark:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.3)] px-2.5 py-2">
+            <div className="rounded-3xl glass-heavy glow-violet p-4">
               {/* ── Row: avatar + name ── */}
               <div
-                className="flex items-center gap-2.5 cursor-pointer transition-all duration-200"
+                className="flex items-center gap-3 cursor-pointer"
                 onClick={() => {
                   setOpen(false);
                   setEditingName(false);
@@ -797,17 +937,17 @@ function GreetingBar() {
                     setAvatarPickerOpen(!avatarPickerOpen);
                   }}
                 >
-                  <div className="size-8 rounded-full overflow-hidden ring-[1.5px] ring-violet-300/70 dark:ring-violet-500/40 transition-all duration-300">
+                  <div className="size-10 rounded-full overflow-hidden ring-2 ring-neon-cyan/50 transition-all">
                     <img src={avatar} alt="" className="size-full object-cover" />
                   </div>
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-white dark:bg-slate-800 border border-border/60 flex items-center justify-center"
+                    className="absolute -bottom-0.5 -right-0.5 size-4 rounded-full glass flex items-center justify-center"
                   >
                     <ChevronDown
                       className={cn(
-                        'size-2 text-muted-foreground/70 transition-transform duration-200',
+                        'size-2.5 text-muted-foreground transition-transform',
                         avatarPickerOpen && 'rotate-180',
                       )}
                     />
@@ -817,27 +957,25 @@ function GreetingBar() {
                 {/* Text */}
                 <div className="flex-1 min-w-0">
                   {editingName ? (
-                    <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                       <input
                         ref={nameInputRef}
                         value={nameDraft}
                         onChange={(e) => setNameDraft(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') commitName();
-                          if (e.key === 'Escape') {
-                            setEditingName(false);
-                          }
+                          if (e.key === 'Escape') setEditingName(false);
                         }}
                         onBlur={commitName}
                         maxLength={20}
                         placeholder={t('profile.defaultNickname')}
-                        className="flex-1 min-w-0 h-6 bg-transparent border-b border-border/80 text-[13px] font-semibold text-foreground outline-none placeholder:text-muted-foreground/40"
+                        className="flex-1 min-w-0 h-7 bg-transparent border-b-2 border-neon-cyan/50 text-sm font-semibold outline-none placeholder:text-muted-foreground/40"
                       />
                       <button
                         onClick={commitName}
-                        className="shrink-0 size-5 rounded flex items-center justify-center text-violet-500 hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                        className="shrink-0 size-6 rounded-lg glass flex items-center justify-center text-neon-cyan hover:glow-cyan transition-all"
                       >
-                        <Check className="size-3" />
+                        <Check className="size-3.5" />
                       </button>
                     </div>
                   ) : (
@@ -846,28 +984,26 @@ function GreetingBar() {
                         e.stopPropagation();
                         startEditName();
                       }}
-                      className="group/name inline-flex items-center gap-1 cursor-pointer"
+                      className="group/name inline-flex items-center gap-1.5 cursor-pointer"
                     >
-                      <span className="text-[13px] font-semibold text-foreground/85 group-hover/name:text-foreground transition-colors">
-                        {displayName}
-                      </span>
-                      <Pencil className="size-2.5 text-muted-foreground/30 opacity-0 group-hover/name:opacity-100 transition-opacity" />
+                      <span className="text-sm font-semibold">{displayName}</span>
+                      <Pencil className="size-3 text-muted-foreground/40 opacity-0 group-hover/name:opacity-100 transition-opacity" />
                     </span>
                   )}
                 </div>
 
-                {/* Collapse arrow */}
+                {/* Collapse */}
                 <motion.div
-                  initial={{ opacity: 0, y: -2 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="shrink-0 size-6 rounded-full flex items-center justify-center hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="shrink-0 size-7 rounded-full glass flex items-center justify-center hover:glow-cyan transition-all"
                 >
-                  <ChevronUp className="size-3.5 text-muted-foreground/50" />
+                  <ChevronUp className="size-4 text-muted-foreground" />
                 </motion.div>
               </div>
 
               {/* ── Expandable content ── */}
-              <div className="pt-2" onClick={(e) => e.stopPropagation()}>
+              <div className="pt-3" onClick={(e) => e.stopPropagation()}>
                 {/* Avatar picker */}
                 <AnimatePresence>
                   {avatarPickerOpen && (
@@ -875,20 +1011,20 @@ function GreetingBar() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.15, ease: 'easeInOut' }}
+                      transition={{ duration: 0.2 }}
                       className="overflow-hidden"
                     >
-                      <div className="p-1 pb-2.5 flex items-center gap-1.5 flex-wrap">
+                      <div className="pb-3 flex items-center gap-2 flex-wrap">
                         {AVATAR_OPTIONS.map((url) => (
                           <button
                             key={url}
                             onClick={() => setAvatar(url)}
                             className={cn(
-                              'size-7 rounded-full overflow-hidden bg-gray-50 dark:bg-gray-800 cursor-pointer transition-all duration-150',
+                              'size-8 rounded-full overflow-hidden transition-all',
                               'hover:scale-110 active:scale-95',
                               avatar === url
-                                ? 'ring-2 ring-violet-400 dark:ring-violet-500 ring-offset-0'
-                                : 'hover:ring-1 hover:ring-muted-foreground/30',
+                                ? 'ring-2 ring-neon-cyan glow-cyan'
+                                : 'glass hover:ring-1 hover:ring-neon-violet/50',
                             )}
                           >
                             <img src={url} alt="" className="size-full" />
@@ -896,16 +1032,16 @@ function GreetingBar() {
                         ))}
                         <label
                           className={cn(
-                            'size-7 rounded-full flex items-center justify-center cursor-pointer transition-all duration-150 border border-dashed',
+                            'size-8 rounded-full flex items-center justify-center cursor-pointer transition-all border border-dashed',
                             'hover:scale-110 active:scale-95',
                             isCustomAvatar(avatar)
-                              ? 'ring-2 ring-violet-400 dark:ring-violet-500 ring-offset-0 border-violet-300 dark:border-violet-600 bg-violet-50 dark:bg-violet-900/30'
-                              : 'border-muted-foreground/30 text-muted-foreground/50 hover:border-muted-foreground/50',
+                              ? 'ring-2 ring-neon-pink glow-pink border-neon-pink/50'
+                              : 'glass border-muted-foreground/30 hover:border-neon-pink/50',
                           )}
                           onClick={() => avatarInputRef.current?.click()}
                           title={t('profile.uploadAvatar')}
                         >
-                          <ImagePlus className="size-3" />
+                          <ImagePlus className="size-3.5" />
                         </label>
                       </div>
                     </motion.div>
@@ -919,7 +1055,7 @@ function GreetingBar() {
                   placeholder={t('profile.bioPlaceholder')}
                   maxLength={200}
                   rows={2}
-                  className="resize-none border-border/40 bg-transparent min-h-[72px] !text-[13px] !leading-relaxed placeholder:!text-[11px] placeholder:!leading-relaxed focus-visible:ring-1 focus-visible:ring-border/60"
+                  className="resize-none glass border-glass-border bg-transparent min-h-[72px] !text-sm !leading-relaxed placeholder:!text-xs placeholder:!leading-relaxed focus-visible:ring-1 focus-visible:ring-neon-cyan/50 rounded-xl"
                 />
               </div>
             </div>
@@ -930,7 +1066,7 @@ function GreetingBar() {
   );
 }
 
-// ─── Classroom Card — clean, minimal style ──────────────────────
+// ─── Classroom Card — Glassmorphic style ──────────────────────
 function ClassroomCard({
   classroom,
   slide,
@@ -989,11 +1125,14 @@ function ClassroomCard({
   };
 
   return (
-    <div className="group cursor-pointer" onClick={confirmingDelete ? undefined : onClick}>
-      {/* Thumbnail — large radius, no border, subtle bg */}
+    <div
+      className="group cursor-pointer transition-all duration-300 hover:scale-[1.02]"
+      onClick={confirmingDelete ? undefined : onClick}
+    >
+      {/* Thumbnail */}
       <div
         ref={thumbRef}
-        className="relative w-full aspect-[16/9] rounded-2xl bg-slate-100 dark:bg-slate-800/80 overflow-hidden transition-transform duration-200 group-hover:scale-[1.02]"
+        className="relative w-full aspect-[16/9] rounded-2xl glass overflow-hidden transition-all group-hover:glow-violet"
       >
         {slide && thumbWidth > 0 ? (
           <ThumbnailSlide
@@ -1004,25 +1143,33 @@ function ClassroomCard({
           />
         ) : !slide ? (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="size-12 rounded-2xl bg-gradient-to-br from-violet-100 to-blue-100 dark:from-violet-900/30 dark:to-blue-900/30 flex items-center justify-center">
-              <span className="text-xl opacity-50">📄</span>
+            <div className="size-14 rounded-2xl glass flex items-center justify-center">
+              <Sparkles className="size-6 text-neon-violet" />
             </div>
           </div>
         ) : null}
 
-        {/* Delete — top-right, only on hover */}
+        {/* Action buttons */}
         <AnimatePresence>
           {!confirmingDelete && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
+              className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <Button
                 size="icon"
                 variant="ghost"
-                className="absolute top-2 right-2 size-7 opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 hover:bg-destructive/80 text-white hover:text-white backdrop-blur-sm rounded-full"
+                className="size-8 rounded-xl glass hover:glow-violet"
+                onClick={startRename}
+              >
+                <Pencil className="size-3.5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-8 rounded-xl glass hover:bg-destructive/20 hover:text-destructive"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete(classroom.id, e);
@@ -1030,41 +1177,32 @@ function ClassroomCard({
               >
                 <Trash2 className="size-3.5" />
               </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="absolute top-2 right-11 size-7 opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 hover:bg-black/50 text-white hover:text-white backdrop-blur-sm rounded-full"
-                onClick={startRename}
-              >
-                <Pencil className="size-3.5" />
-              </Button>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Inline delete confirmation overlay */}
+        {/* Delete confirmation */}
         <AnimatePresence>
           {confirmingDelete && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/50 backdrop-blur-[6px]"
+              className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 glass-heavy"
               onClick={(e) => e.stopPropagation()}
             >
-              <span className="text-[13px] font-medium text-white/90">
+              <span className="text-sm font-medium">
                 {t('classroom.deleteConfirmTitle')}?
               </span>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
-                  className="px-3.5 py-1 rounded-lg text-[12px] font-medium bg-white/15 text-white/80 hover:bg-white/25 backdrop-blur-sm transition-colors"
+                  className="px-4 py-2 rounded-xl glass hover:glow-cyan text-sm font-medium transition-all"
                   onClick={onCancelDelete}
                 >
                   {t('common.cancel')}
                 </button>
                 <button
-                  className="px-3.5 py-1 rounded-lg text-[12px] font-medium bg-red-500/90 text-white hover:bg-red-500 transition-colors"
+                  className="px-4 py-2 rounded-xl bg-destructive/80 text-white hover:bg-destructive text-sm font-medium transition-all"
                   onClick={onConfirmDelete}
                 >
                   {t('classroom.delete')}
@@ -1075,9 +1213,9 @@ function ClassroomCard({
         </AnimatePresence>
       </div>
 
-      {/* Info — outside the thumbnail */}
-      <div className="mt-2.5 px-1 flex items-center gap-2">
-        <span className="shrink-0 inline-flex items-center rounded-full bg-violet-100 dark:bg-violet-900/30 px-2 py-0.5 text-[11px] font-medium text-violet-600 dark:text-violet-400">
+      {/* Info */}
+      <div className="mt-3 px-1 flex items-center gap-2">
+        <span className="shrink-0 inline-flex items-center rounded-full glass px-3 py-1 text-xs font-medium text-neon-violet">
           {classroom.sceneCount} {t('classroom.slides')} · {formatDate(classroom.updatedAt)}
         </span>
         {editing ? (
@@ -1093,14 +1231,14 @@ function ClassroomCard({
               onBlur={commitRename}
               maxLength={100}
               placeholder={t('classroom.renamePlaceholder')}
-              className="w-full bg-transparent border-b border-violet-400/60 text-[15px] font-medium text-foreground/90 outline-none placeholder:text-muted-foreground/40"
+              className="w-full bg-transparent border-b-2 border-neon-cyan/50 text-base font-medium outline-none placeholder:text-muted-foreground/40"
             />
           </div>
         ) : (
           <Tooltip>
             <TooltipTrigger asChild>
               <p
-                className="font-medium text-[15px] truncate text-foreground/90 min-w-0 cursor-text"
+                className="font-medium text-base truncate min-w-0 cursor-text"
                 onDoubleClick={startRename}
               >
                 {classroom.name}
@@ -1109,19 +1247,19 @@ function ClassroomCard({
             <TooltipContent
               side="bottom"
               sideOffset={4}
-              className="!max-w-[min(90vw,32rem)] break-words whitespace-normal"
+              className="!max-w-[min(90vw,32rem)] break-words whitespace-normal glass"
             >
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <span className="break-all">{classroom.name}</span>
                 <button
-                  className="shrink-0 p-0.5 rounded hover:bg-foreground/10 transition-colors"
+                  className="shrink-0 p-1 rounded-lg glass hover:glow-cyan transition-all"
                   onClick={(e) => {
                     e.stopPropagation();
                     navigator.clipboard.writeText(classroom.name);
                     toast.success(t('classroom.nameCopied'));
                   }}
                 >
-                  <Copy className="size-3 opacity-60" />
+                  <Copy className="size-3" />
                 </button>
               </div>
             </TooltipContent>

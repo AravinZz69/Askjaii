@@ -4,11 +4,28 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================
+   AskJaY – Glassmorphic Theme
+   ============================================ */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* Glass effect colors */
+  --color-glass: var(--glass);
+  --color-glass-border: var(--glass-border);
+  --color-glass-hover: var(--glass-hover);
+  
+  /* Neon accent colors */
+  --color-neon-cyan: var(--neon-cyan);
+  --color-neon-pink: var(--neon-pink);
+  --color-neon-violet: var(--neon-violet);
+  --color-neon-green: var(--neon-green);
+  
+  /* Sidebar */
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -17,11 +34,15 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+  
+  /* Charts */
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  
+  /* Standard semantic colors */
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -38,92 +59,369 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  
+  /* Generous radius for glassmorphic feel */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+  --radius-4xl: 2.5rem;
 }
 
+/* ============================================
+   Light Mode – Ethereal Aurora
+   ============================================ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: #722ed1;
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.58 0.22 27);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Gradient mesh background */
+  --background: #f8fafc;
+  --background-gradient: linear-gradient(135deg, 
+    #e0e7ff 0%,      /* lavender */
+    #cffafe 25%,     /* cyan tint */
+    #fce7f3 50%,     /* pink blush */
+    #e0e7ff 75%,     /* lavender */
+    #d1fae5 100%     /* mint */
+  );
+  
+  --foreground: #1e293b;
+  
+  /* Glass cards */
+  --glass: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-hover: rgba(255, 255, 255, 0.75);
+  
+  /* Cards & popovers inherit glass */
+  --card: rgba(255, 255, 255, 0.5);
+  --card-foreground: #1e293b;
+  --popover: rgba(255, 255, 255, 0.85);
+  --popover-foreground: #1e293b;
+  
+  /* Neon accents */
+  --neon-cyan: #00d9ff;
+  --neon-pink: #ff006e;
+  --neon-violet: #8b5cf6;
+  --neon-green: #00ff88;
+  
+  /* Primary = Electric Cyan */
+  --primary: #00d9ff;
+  --primary-foreground: #0c1222;
+  
+  /* Secondary = Soft Violet */
+  --secondary: rgba(139, 92, 246, 0.15);
+  --secondary-foreground: #5b21b6;
+  
+  /* Muted tones */
+  --muted: rgba(148, 163, 184, 0.2);
+  --muted-foreground: #64748b;
+  
+  /* Accent = Hot Pink */
+  --accent: rgba(255, 0, 110, 0.1);
+  --accent-foreground: #be185d;
+  
+  --destructive: #ef4444;
+  
+  /* Borders – subtle glass edges */
+  --border: rgba(148, 163, 184, 0.3);
+  --input: rgba(255, 255, 255, 0.7);
+  --ring: #00d9ff;
+  
+  /* Charts – neon gradient */
+  --chart-1: #00d9ff;
+  --chart-2: #8b5cf6;
+  --chart-3: #ff006e;
+  --chart-4: #00ff88;
+  --chart-5: #fbbf24;
+  
+  --radius: 1rem;
+  
+  /* Sidebar – frosted panel */
+  --sidebar: rgba(255, 255, 255, 0.4);
+  --sidebar-foreground: #1e293b;
+  --sidebar-primary: #00d9ff;
+  --sidebar-primary-foreground: #0c1222;
+  --sidebar-accent: rgba(139, 92, 246, 0.15);
+  --sidebar-accent-foreground: #5b21b6;
+  --sidebar-border: rgba(255, 255, 255, 0.6);
+  --sidebar-ring: #00d9ff;
 }
 
+/* ============================================
+   Dark Mode – Deep Space Aurora
+   ============================================ */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: #8b47ea;
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.371 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Deep space gradient */
+  --background: #0c1222;
+  --background-gradient: linear-gradient(135deg,
+    #0c1222 0%,       /* deep navy */
+    #1e1b4b 25%,      /* indigo */
+    #0f172a 50%,      /* slate */
+    #170a2c 75%,      /* purple-black */
+    #0c1222 100%
+  );
+  
+  --foreground: #f1f5f9;
+  
+  /* Glass cards – more translucent in dark mode */
+  --glass: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-hover: rgba(255, 255, 255, 0.12);
+  
+  --card: rgba(255, 255, 255, 0.06);
+  --card-foreground: #f1f5f9;
+  --popover: rgba(15, 23, 42, 0.95);
+  --popover-foreground: #f1f5f9;
+  
+  /* Neon accents – brighter in dark mode */
+  --neon-cyan: #00ffff;
+  --neon-pink: #ff2d92;
+  --neon-violet: #a78bfa;
+  --neon-green: #00ff88;
+  
+  --primary: #00ffff;
+  --primary-foreground: #0c1222;
+  
+  --secondary: rgba(167, 139, 250, 0.2);
+  --secondary-foreground: #c4b5fd;
+  
+  --muted: rgba(71, 85, 105, 0.4);
+  --muted-foreground: #94a3b8;
+  
+  --accent: rgba(255, 45, 146, 0.15);
+  --accent-foreground: #fb7185;
+  
+  --destructive: #f87171;
+  
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: #00ffff;
+  
+  --chart-1: #00ffff;
+  --chart-2: #a78bfa;
+  --chart-3: #ff2d92;
+  --chart-4: #00ff88;
+  --chart-5: #fcd34d;
+  
+  --sidebar: rgba(255, 255, 255, 0.05);
+  --sidebar-foreground: #f1f5f9;
+  --sidebar-primary: #00ffff;
+  --sidebar-primary-foreground: #0c1222;
+  --sidebar-accent: rgba(167, 139, 250, 0.2);
+  --sidebar-accent-foreground: #c4b5fd;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #00ffff;
 }
 
+/* ============================================
+   Base Layer – Global Styles
+   ============================================ */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
   body {
     @apply bg-background text-foreground;
+    background: var(--background-gradient);
+    background-attachment: fixed;
+    min-height: 100vh;
   }
 }
+
+/* ============================================
+   Glassmorphic Utility Classes
+   ============================================ */
+
+/* Standard glass card */
+@utility glass {
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+}
+
+/* Heavier glass effect */
+@utility glass-heavy {
+  background: var(--glass-hover);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid var(--glass-border);
+}
+
+/* Subtle glass for nested elements */
+@utility glass-subtle {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Neon glow effects */
+@utility glow-cyan {
+  box-shadow: 
+    0 0 20px rgba(0, 217, 255, 0.3),
+    0 0 40px rgba(0, 217, 255, 0.1),
+    inset 0 0 20px rgba(0, 217, 255, 0.05);
+}
+
+@utility glow-pink {
+  box-shadow: 
+    0 0 20px rgba(255, 0, 110, 0.3),
+    0 0 40px rgba(255, 0, 110, 0.1),
+    inset 0 0 20px rgba(255, 0, 110, 0.05);
+}
+
+@utility glow-violet {
+  box-shadow: 
+    0 0 20px rgba(139, 92, 246, 0.3),
+    0 0 40px rgba(139, 92, 246, 0.1),
+    inset 0 0 20px rgba(139, 92, 246, 0.05);
+}
+
+/* Text glow for headings */
+@utility text-glow-cyan {
+  text-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
+}
+
+@utility text-glow-pink {
+  text-shadow: 0 0 20px rgba(255, 0, 110, 0.5);
+}
+
+/* Gradient text */
+@utility gradient-text {
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-violet), var(--neon-pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Animated gradient border - use as a class with CSS */
+.gradient-border {
+  position: relative;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-violet), var(--neon-pink));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* Floating animation for cards */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@utility animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Pulse glow animation */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(0, 217, 255, 0.6), 0 0 60px rgba(0, 217, 255, 0.3);
+  }
+}
+
+@utility animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Aurora background animation */
+@keyframes aurora {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@utility animate-aurora {
+  background-size: 200% 200%;
+  animation: aurora 15s ease infinite;
+}
+
+/* ═══ GPU-Accelerated Breathing Glow Animation ═══ */
+@keyframes breathing-glow {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes breathing-glow-focused {
+  0%, 100% {
+    background-position: 0% 50%;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.4), 0 0 40px rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    background-position: 100% 50%;
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.5), 0 0 60px rgba(255, 0, 110, 0.4);
+  }
+}
+
+.animate-breathing-glow {
+  background-size: 300% 100%;
+  animation: breathing-glow 4s ease-in-out infinite;
+  /* GPU acceleration */
+  will-change: background-position;
+  transform: translateZ(0);
+}
+
+.animate-breathing-glow-focused {
+  background-size: 300% 100%;
+  animation: breathing-glow-focused 2s ease-in-out infinite;
+  /* GPU acceleration */
+  will-change: background-position, box-shadow;
+  transform: translateZ(0);
+}
+
+/* ═══ Static Aurora Glow with GPU Acceleration ═══ */
+.aurora-glow-1 {
+  background: radial-gradient(ellipse 80% 60% at 20% 30%, rgba(0, 217, 255, 0.2), transparent 70%);
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.aurora-glow-2 {
+  background: radial-gradient(ellipse 70% 50% at 75% 60%, rgba(139, 92, 246, 0.15), transparent 70%);
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* GPU-accelerated transform utility */
+.transform-gpu {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Force GPU rendering for animated backgrounds */
+.gpu-layer {
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
 /* ProseMirror Editor Styles */
 .prosemirror-editor {
   cursor: text;

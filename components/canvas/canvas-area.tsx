@@ -80,26 +80,42 @@ export function CanvasArea({
   );
 
   return (
-    <div className="w-full h-full flex flex-col bg-gray-50 dark:bg-gray-900 group/canvas">
+    <div className="w-full h-full flex flex-col bg-transparent group/canvas">
       {/* Slide area — takes remaining space */}
       <div
         className={cn(
-          'flex-1 min-h-0 relative overflow-hidden flex items-center justify-center p-2 transition-colors duration-500',
-          currentScene?.type === 'interactive'
-            ? 'bg-blue-50/30 dark:bg-blue-900/10'
-            : 'bg-gray-50/30 dark:bg-gray-900/30',
+          'flex-1 min-h-0 relative overflow-hidden flex items-center justify-center p-4 transition-colors duration-500',
+          'bg-transparent',
         )}
       >
+        {/* Holographic projection panel */}
         <div
           className={cn(
-            'aspect-[16/9] h-full max-h-full max-w-full bg-white dark:bg-gray-800 shadow-2xl rounded-lg overflow-hidden relative transition-all duration-700',
+            'aspect-[16/9] h-full max-h-full max-w-full overflow-hidden relative transition-all duration-700',
+            'rounded-2xl',
+            'backdrop-blur-xl',
+            'bg-slate-900/60',
+            'border border-cyan-500/20',
+            'shadow-[0_0_40px_rgba(0,217,255,0.1),inset_0_0_40px_rgba(0,217,255,0.03)]',
             showControls && !isLiveSession && currentScene?.type === 'slide' && 'cursor-pointer',
-            currentScene?.type === 'interactive'
-              ? 'shadow-blue-200/50 dark:shadow-blue-900/50 ring-1 ring-blue-900/5 dark:ring-blue-500/10'
-              : 'shadow-gray-200/50 dark:shadow-gray-800/50 ring-1 ring-gray-950/5 dark:ring-white/5',
+            currentScene?.type === 'interactive' && 'border-violet-500/30 shadow-[0_0_40px_rgba(139,92,246,0.15)]',
           )}
           onClick={handleSlideClick}
         >
+          {/* Corner accents */}
+          <div className="absolute top-0 left-0 w-6 h-6 border-l-2 border-t-2 border-cyan-500/40 rounded-tl-xl pointer-events-none z-20" />
+          <div className="absolute top-0 right-0 w-6 h-6 border-r-2 border-t-2 border-cyan-500/40 rounded-tr-xl pointer-events-none z-20" />
+          <div className="absolute bottom-0 left-0 w-6 h-6 border-l-2 border-b-2 border-cyan-500/40 rounded-bl-xl pointer-events-none z-20" />
+          <div className="absolute bottom-0 right-0 w-6 h-6 border-r-2 border-b-2 border-cyan-500/40 rounded-br-xl pointer-events-none z-20" />
+
+          {/* Holographic scan line effect */}
+          <motion.div
+            className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent pointer-events-none z-20"
+            animate={{ y: ['0%', '100%', '0%'] }}
+            transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
+            style={{ top: 0 }}
+          />
+
           {/* Whiteboard Layer */}
           <div className="absolute inset-0 z-[110] pointer-events-none">
             <SceneProvider>
@@ -109,7 +125,7 @@ export function CanvasArea({
 
           {/* Scene Content */}
           {currentScene && !whiteboardOpen && (
-            <div className="absolute inset-0">
+            <div className="absolute inset-0 bg-white dark:bg-slate-800">
               <SceneProvider>
                 <SceneRenderer scene={currentScene} mode={mode} />
               </SceneProvider>
@@ -124,13 +140,13 @@ export function CanvasArea({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.4, ease: 'easeOut' }}
-                className="absolute inset-0 z-[105] flex flex-col items-center justify-center bg-white dark:bg-gray-800"
+                className="absolute inset-0 z-[105] flex flex-col items-center justify-center bg-slate-900/90 backdrop-blur-sm"
               >
                 {isGenerationFailed ? (
                   <div className="flex flex-col items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center">
                       <svg
-                        className="w-6 h-6 text-red-400 dark:text-red-500"
+                        className="w-7 h-7 text-red-400"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -143,31 +159,44 @@ export function CanvasArea({
                         />
                       </svg>
                     </div>
-                    <span className="text-sm text-red-500 dark:text-red-400 font-medium">
+                    <span className="text-sm text-red-400 font-mono tracking-wide">
                       {t('stage.generationFailed')}
                     </span>
                     {onRetryGeneration && (
                       <button
                         onClick={onRetryGeneration}
-                        className="mt-1 px-4 py-1.5 text-xs font-medium rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors active:scale-95"
+                        className="mt-2 px-5 py-2 text-xs font-mono tracking-wide rounded-full bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-all active:scale-95"
                       >
                         {t('generation.retryScene')}
                       </button>
                     )}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center gap-4">
-                    {/* Spinner */}
-                    <div className="relative w-12 h-12">
-                      <div className="absolute inset-0 rounded-full border-2 border-gray-100 dark:border-gray-700" />
-                      <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-purple-500 dark:border-t-purple-400 animate-spin" />
+                  <div className="flex flex-col items-center gap-5">
+                    {/* Holographic spinner */}
+                    <div className="relative w-16 h-16">
+                      <motion.div 
+                        className="absolute inset-0 rounded-full border-2 border-cyan-500/20"
+                        animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                      />
+                      <motion.div 
+                        className="absolute inset-0 rounded-full border-2 border-transparent border-t-cyan-400 border-r-violet-400"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                      />
+                      <motion.div 
+                        className="absolute inset-2 rounded-full border border-transparent border-b-pink-400"
+                        animate={{ rotate: -360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                      />
                     </div>
                     {/* Text */}
                     <motion.span
                       initial={{ opacity: 0, y: 4 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2, duration: 0.3 }}
-                      className="text-sm text-gray-400 dark:text-gray-500 font-medium"
+                      className="text-sm text-cyan-400/80 font-mono tracking-wider"
                     >
                       {t('stage.generatingNextPage')}
                     </motion.span>
@@ -177,14 +206,14 @@ export function CanvasArea({
             )}
           </AnimatePresence>
 
-          {/* Scene Number Badge */}
+          {/* Scene Number Badge - Holographic style */}
           {currentScene && (
-            <div className="absolute top-4 right-4 text-gray-200 dark:text-gray-700 font-black text-4xl opacity-50 pointer-events-none select-none mix-blend-multiply dark:mix-blend-screen">
-              {(currentSceneIndex + 1).toString().padStart(2, '0')}
+            <div className="absolute top-4 right-4 font-mono text-4xl font-bold pointer-events-none select-none z-20">
+              <span className="text-cyan-500/20">{(currentSceneIndex + 1).toString().padStart(2, '0')}</span>
             </div>
           )}
 
-          {/* Play hint — breathing button when idle or paused (slides only) */}
+          {/* Play hint — Holographic orb when idle or paused (slides only) */}
           <AnimatePresence>
             {showPlayHint && (
               <motion.div
@@ -195,30 +224,47 @@ export function CanvasArea({
                 className="absolute inset-0 z-[102] flex items-center justify-center pointer-events-none"
               >
                 <motion.div
-                  className="opacity-50 group-hover/canvas:opacity-100 transition-opacity duration-300 pointer-events-auto cursor-pointer"
+                  className="opacity-60 group-hover/canvas:opacity-100 transition-opacity duration-300 pointer-events-auto cursor-pointer"
                   exit={{ pointerEvents: 'none' }}
                   onClick={(e) => {
                     e.stopPropagation();
                     onPlayPause();
                   }}
                 >
+                  {/* Outer glow ring */}
+                  <motion.div
+                    className="absolute inset-0 rounded-full"
+                    style={{
+                      background: 'radial-gradient(circle, rgba(0,217,255,0.2) 0%, transparent 70%)',
+                      filter: 'blur(20px)',
+                    }}
+                    animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.8, 0.5] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                  />
                   <motion.div
                     initial={{ scale: 0.85 }}
-                    animate={{ scale: [1, 1.06] }}
+                    animate={{ scale: [1, 1.08, 1] }}
                     exit={{ scale: 1.15, opacity: 0 }}
                     transition={{
                       default: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
                       scale: {
                         repeat: Infinity,
-                        repeatType: 'mirror',
-                        duration: 1,
+                        duration: 2,
                         ease: 'easeInOut',
                       },
                     }}
-                    className="w-20 h-20 rounded-full bg-white/95 dark:bg-gray-800/95 flex items-center justify-center shadow-[0_4px_30px_rgba(147,51,234,0.15),inset_0_0_0_1px_rgba(233,213,255,0.5)] dark:shadow-[0_4px_30px_rgba(147,51,234,0.3),inset_0_0_0_1px_rgba(126,34,206,0.3)]"
+                    className="relative w-20 h-20 rounded-full flex items-center justify-center"
                     style={{ willChange: 'transform' }}
                   >
-                    <Play className="w-7 h-7 text-purple-600 dark:text-purple-400 fill-purple-600/90 dark:fill-purple-400/90 ml-0.5" />
+                    {/* Holographic orb layers */}
+                    <div className="absolute inset-0 rounded-full bg-slate-900/80 backdrop-blur-xl border border-cyan-500/30" />
+                    <motion.div
+                      className="absolute inset-0 rounded-full border-2 border-transparent border-t-cyan-400 border-r-violet-400"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                    />
+                    <div className="absolute inset-0 rounded-full shadow-[0_0_30px_rgba(0,217,255,0.3),inset_0_0_20px_rgba(0,217,255,0.1)]" />
+                    <Play className="relative z-10 w-8 h-8 text-cyan-400 fill-cyan-400/80 ml-1" />
                   </motion.div>
                 </motion.div>
               </motion.div>
@@ -231,9 +277,9 @@ export function CanvasArea({
       {!hideToolbar && (
         <CanvasToolbar
           className={cn(
-            'shrink-0 h-9 px-2',
-            'bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl',
-            'border-t border-gray-200/40 dark:border-gray-700/40',
+            'shrink-0 h-10 px-3',
+            'bg-slate-900/70 backdrop-blur-xl',
+            'border-t border-cyan-500/10',
           )}
           currentSceneIndex={currentSceneIndex}
           scenesCount={scenesCount}

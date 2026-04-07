@@ -1,6 +1,5 @@
-// Force dynamic rendering since this page uses client-side hooks (useI18n)
-export const dynamic = 'force-dynamic';
-
+// Generation preview layout - uses client-side hooks (useI18n)
+// Dynamic rendering handled by cacheComponents
 export default function GenerationPreviewLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

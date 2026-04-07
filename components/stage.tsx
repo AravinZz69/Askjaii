@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { AlertTriangle } from 'lucide-react';
 import { VisuallyHidden } from 'radix-ui';
+import { ParticleField } from '@/components/holodeck';
 
 /**
  * Stage Component
@@ -926,10 +927,14 @@ export function Stage({
     <div
       ref={stageRef}
       className={cn(
-        'flex-1 flex overflow-hidden bg-gray-50 dark:bg-gray-900',
+        'flex-1 flex overflow-hidden relative',
+        'bg-[#050a15]', // Dark holodeck void
         isPresenting && !controlsVisible && 'cursor-none',
       )}
     >
+      {/* ═══ Holodeck Particle Field Background ═══ */}
+      <ParticleField count={40} className="z-0" />
+      
       {/* Scene Sidebar */}
       <SceneSidebar
         collapsed={sidebarCollapsed}
@@ -939,7 +944,7 @@ export function Stage({
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0 relative">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0 relative z-10">
         {/* Header */}
         {!isPresenting && <Header currentSceneTitle={currentScene?.title || ''} />}
 
