@@ -29,6 +29,7 @@ import { AgentRevealModal } from '@/components/agent/agent-reveal-modal';
 import { createLogger } from '@/lib/logger';
 import { type GenerationSessionState, ALL_STEPS, getActiveSteps } from './types';
 import { StepVisualizer } from './components/visualizers';
+import { EnchantedGardenBg } from './components/enchanted-garden-bg';
 
 const log = createLogger('GenerationPreview');
 
@@ -818,73 +819,39 @@ function GenerationPreviewContent() {
   // Still loading session from sessionStorage
   if (!sessionLoaded) {
     return (
-      <div 
-        className="min-h-[100dvh] w-full flex items-center justify-center"
-        style={{
-          background: `linear-gradient(
-            45deg,
-            hsl(206deg 100% 91%) 0%,
-            hsl(215deg 100% 93%) 11%,
-            hsl(224deg 100% 95%) 22%,
-            hsl(233deg 100% 96%) 33%,
-            hsl(242deg 100% 97%) 44%,
-            hsl(251deg 100% 97%) 56%,
-            hsl(194deg 100% 96%) 67%,
-            hsl(168deg 100% 94%) 78%,
-            hsl(141deg 100% 92%) 89%,
-            hsl(115deg 100% 90%) 100%
-          )`,
-        }}
-      >
+      <EnchantedGardenBg>
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="flex flex-col items-center gap-4"
         >
-          <div className="size-12 rounded-2xl bg-white shadow-lg flex items-center justify-center">
-            <svg className="animate-spin size-6 text-violet-500" viewBox="0 0 24 24" fill="none">
+          <div className="size-12 rounded-2xl bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center">
+            <svg className="animate-spin size-6 text-emerald-500" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.2" />
               <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
             </svg>
           </div>
           <motion.span
-            className="text-slate-500 text-sm font-medium"
+            className="text-emerald-200 text-sm font-medium"
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 1.5, repeat: Infinity }}
           >
             Initializing...
           </motion.span>
         </motion.div>
-      </div>
+      </EnchantedGardenBg>
     );
   }
 
   // No session found
   if (!session) {
     return (
-      <div 
-        className="min-h-[100dvh] w-full flex items-center justify-center p-4"
-        style={{
-          background: `linear-gradient(
-            45deg,
-            hsl(206deg 100% 91%) 0%,
-            hsl(215deg 100% 93%) 11%,
-            hsl(224deg 100% 95%) 22%,
-            hsl(233deg 100% 96%) 33%,
-            hsl(242deg 100% 97%) 44%,
-            hsl(251deg 100% 97%) 56%,
-            hsl(194deg 100% 96%) 67%,
-            hsl(168deg 100% 94%) 78%,
-            hsl(141deg 100% 92%) 89%,
-            hsl(115deg 100% 90%) 100%
-          )`,
-        }}
-      >
+      <EnchantedGardenBg>
         <motion.div 
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
-          className="text-center space-y-6 p-8 rounded-3xl bg-white shadow-2xl max-w-md"
+          className="text-center space-y-6 p-8 rounded-3xl bg-white/95 backdrop-blur-sm shadow-2xl max-w-md"
         >
           <div className="size-16 mx-auto rounded-2xl bg-red-50 flex items-center justify-center">
             <AlertCircle className="size-8 text-red-500" />
@@ -901,7 +868,7 @@ function GenerationPreviewContent() {
             {t('generation.backToHome')}
           </Button>
         </motion.div>
-      </div>
+      </EnchantedGardenBg>
     );
   }
 
@@ -962,62 +929,11 @@ function GenerationPreviewContent() {
     return 'pending';
   };
 
-  return (
-    <div 
-      className="min-h-[100dvh] w-full flex items-center justify-center p-4 relative overflow-hidden"
-      style={{
-        background: `linear-gradient(
-          45deg,
-          hsl(206deg 100% 91%) 0%,
-          hsl(215deg 100% 93%) 11%,
-          hsl(224deg 100% 95%) 22%,
-          hsl(233deg 100% 96%) 33%,
-          hsl(242deg 100% 97%) 44%,
-          hsl(251deg 100% 97%) 56%,
-          hsl(194deg 100% 96%) 67%,
-          hsl(168deg 100% 94%) 78%,
-          hsl(141deg 100% 92%) 89%,
-          hsl(115deg 100% 90%) 100%
-        )`,
-      }}
-    >
-      {/* Subtle animated background blobs */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <motion.div
-          className="absolute w-[600px] h-[600px] rounded-full"
-          style={{
-            background: 'radial-gradient(circle, rgba(147, 197, 253, 0.3) 0%, transparent 70%)',
-            left: '-10%',
-            top: '-10%',
-            filter: 'blur(60px)',
-          }}
-          animate={{ x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute w-[500px] h-[500px] rounded-full"
-          style={{
-            background: 'radial-gradient(circle, rgba(196, 181, 253, 0.25) 0%, transparent 70%)',
-            right: '-5%',
-            bottom: '-5%',
-            filter: 'blur(50px)',
-          }}
-          animate={{ x: [0, -40, 0], y: [0, -30, 0] }}
-          transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute w-[400px] h-[400px] rounded-full"
-          style={{
-            background: 'radial-gradient(circle, rgba(167, 243, 208, 0.2) 0%, transparent 70%)',
-            left: '30%',
-            bottom: '10%',
-            filter: 'blur(40px)',
-          }}
-          animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
-          transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
-        />
-      </div>
+  // Determine if we're actively generating (not complete and no error)
+  const isGenerating = !isComplete && error === null;
 
+  return (
+    <EnchantedGardenBg>
       {/* Exit Button */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -1028,7 +944,7 @@ function GenerationPreviewContent() {
           variant="ghost" 
           size="sm" 
           onClick={goBackToHome}
-          className="text-slate-500 hover:text-slate-700 hover:bg-white/50 backdrop-blur-sm rounded-full px-4"
+          className="text-emerald-200 hover:text-white hover:bg-white/10 backdrop-blur-sm rounded-full px-4 border border-white/10"
         >
           <ArrowLeft className="size-4 mr-2" />
           Back
@@ -1040,7 +956,7 @@ function GenerationPreviewContent() {
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="relative z-10 w-full max-w-xl bg-white rounded-3xl shadow-2xl p-8"
+        className="relative z-10 w-full max-w-xl bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8"
       >
         {/* Header */}
         <div className="text-center mb-8">
@@ -1048,7 +964,7 @@ function GenerationPreviewContent() {
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            className="inline-flex items-center justify-center size-16 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 mb-4 shadow-lg shadow-violet-500/25"
+            className="inline-flex items-center justify-center size-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 mb-4 shadow-lg shadow-emerald-500/25"
           >
             <Sparkles className="size-8 text-white" />
           </motion.div>
@@ -1127,7 +1043,7 @@ function GenerationPreviewContent() {
           agentRevealResolveRef.current = null;
         }}
       />
-    </div>
+    </EnchantedGardenBg>
   );
 }
 
