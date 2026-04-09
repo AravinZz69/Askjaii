@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
-import { CheckCircle2, Sparkles, AlertCircle, AlertTriangle, ArrowLeft, Bot, Zap, Clock, Activity } from 'lucide-react';
+import { CheckCircle2, Sparkles, AlertCircle, AlertTriangle, ArrowLeft, Bot, Zap, Clock, Activity, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -964,15 +964,25 @@ function GenerationPreviewContent() {
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            className="inline-flex items-center justify-center size-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 mb-4 shadow-lg shadow-emerald-500/25"
+            className={`inline-flex items-center justify-center size-16 rounded-2xl mb-4 shadow-lg ${
+              error 
+                ? 'bg-gradient-to-br from-red-500 to-orange-600 shadow-red-500/25' 
+                : 'bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/25'
+            }`}
           >
             <Sparkles className="size-8 text-white" />
           </motion.div>
           <h1 className="text-2xl font-bold text-slate-800 mb-2">
             {error ? 'Generation Failed' : isComplete ? 'Classroom Ready!' : 'Creating Your Classroom'}
           </h1>
-          <p className="text-sm text-slate-500">
-            {error ? 'Something went wrong. Please try again.' : isComplete ? 'Your interactive learning experience is ready.' : 'This usually takes about a minute...'}
+          <p className="text-sm text-slate-500 max-w-md">
+            {error 
+              ? error.includes('quota') || error.includes('rate') || error.includes('limit')
+                ? '⚠️ API rate limit reached. Please wait 30 seconds and try again, or switch to a different AI model in settings.'
+                : `Error: ${error}`
+              : isComplete 
+                ? 'Your interactive learning experience is ready.' 
+                : 'This usually takes about a minute...'}
           </p>
         </div>
 
@@ -1001,11 +1011,23 @@ function GenerationPreviewContent() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="mt-8 flex justify-center"
+              className="mt-8 flex flex-col items-center gap-3"
             >
               <Button 
+                onClick={() => {
+                  setError(null);
+                  setCurrentStepIndex(0);
+                  startGeneration();
+                }}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-6"
+              >
+                <RefreshCw className="size-4 mr-2" />
+                Try Again
+              </Button>
+              <Button 
+                variant="ghost"
                 onClick={goBackToHome}
-                className="bg-slate-800 hover:bg-slate-700 text-white rounded-full px-6"
+                className="text-slate-600 hover:text-slate-800 rounded-full px-6"
               >
                 <ArrowLeft className="size-4 mr-2" />
                 {t('generation.goBackAndRetry')}

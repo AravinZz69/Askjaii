@@ -440,6 +440,7 @@ function HomePage() {
             <button
               onClick={() => setDrawerOpen(true)}
               className="p-3 rounded-2xl glass hover:glow-cyan transition-all"
+              suppressHydrationWarning
             >
               <Menu className="size-5" />
             </button>
@@ -458,6 +459,7 @@ function HomePage() {
             <button
               onClick={() => setSettingsOpen(true)}
               className="p-3 rounded-2xl glass hover:glow-violet transition-all group"
+              suppressHydrationWarning
             >
               <Settings className="size-5 group-hover:rotate-90 transition-transform duration-500" />
             </button>
