@@ -395,16 +395,6 @@ function HomePage() {
                   <Sparkles className="size-5 text-neon-cyan" />
                   <span className="font-medium">New Session</span>
                 </button>
-                <button
-                  onClick={() => {
-                    setDrawerOpen(false);
-                    setSettingsOpen(true);
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl glass hover:glow-violet transition-all text-left"
-                >
-                  <Settings className="size-5 text-neon-violet" />
-                  <span className="font-medium">Settings</span>
-                </button>
               </nav>
 
               {/* Theme Switcher in Drawer */}
