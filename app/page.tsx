@@ -64,7 +64,7 @@ const RECENT_OPEN_STORAGE_KEY = 'recentClassroomsOpen';
 
 // Cycling placeholder prompts
 const PLACEHOLDER_PROMPTS = [
-  'Ask JaY about Quantum Physics...',
+  'Ask KIET about Quantum Physics...',
   'Teach me Python from scratch...',
   'Explain Machine Learning basics...',
   'Help me understand Calculus...',
@@ -375,7 +375,7 @@ function HomePage() {
               className="fixed left-0 top-0 bottom-0 w-80 z-50 glass-heavy rounded-r-3xl p-6 flex flex-col"
             >
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-bold gradient-text">AskJaY</h2>
+                <h2 className="text-xl font-bold gradient-text">KIET</h2>
                 <button
                   onClick={() => setDrawerOpen(false)}
                   className="p-2 rounded-xl glass hover:glow-cyan transition-all"
@@ -449,7 +449,7 @@ function HomePage() {
               animate={{ opacity: 1, x: 0 }}
               className="hidden sm:flex items-center gap-2"
             >
-              <span className="text-2xl font-bold gradient-text">AskJaY</span>
+              <span className="text-2xl font-bold gradient-text">KIET</span>
             </motion.div>
           </div>
 
@@ -507,7 +507,7 @@ function HomePage() {
           className="mb-4"
         >
           <h1 className="text-5xl md:text-7xl font-bold gradient-text text-glow-cyan">
-            AskJaY
+            KIET
           </h1>
         </motion.div>
 
@@ -518,7 +518,7 @@ function HomePage() {
           transition={{ delay: 0.4 }}
           className="text-lg text-muted-foreground/70 mb-12 text-center"
         >
-          Your AI-powered learning companion
+          Knowledge Interactive Educational Technology
         </motion.p>
 
         {/* ═══ FLOATING CAPSULE INPUT ═══ */}
@@ -782,7 +782,7 @@ function HomePage() {
       {/* ═══ Footer ═══ */}
       <footer className="mt-auto pt-16 pb-6 text-center">
         <p className="text-xs text-muted-foreground/40">
-          Powered by <span className="gradient-text font-medium">AskJaY</span>
+          Powered by <span className="gradient-text font-medium">KIET</span>
         </p>
       </footer>
     </div>
