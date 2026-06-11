@@ -456,13 +456,7 @@ function HomePage() {
           {/* Right: Controls */}
           <div className="flex items-center gap-2">
             <LanguageSwitcher onOpen={() => {}} />
-            <button
-              onClick={() => setSettingsOpen(true)}
-              className="p-3 rounded-2xl glass hover:glow-violet transition-all group"
-              suppressHydrationWarning
-            >
-              <Settings className="size-5 group-hover:rotate-90 transition-transform duration-500" />
-            </button>
+            
           </div>
         </div>
       </div>
@@ -714,32 +708,7 @@ function HomePage() {
           className="relative z-10 mt-16 w-full max-w-6xl px-4 flex flex-col items-center"
         >
           {/* Trigger */}
-          <button
-            onClick={() => {
-              const next = !recentOpen;
-              setRecentOpen(next);
-              try {
-                localStorage.setItem(RECENT_OPEN_STORAGE_KEY, String(next));
-              } catch {
-                /* ignore */
-              }
-            }}
-            className="group w-full flex items-center gap-4 py-3"
-          >
-            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-            <span className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-full glass text-sm text-muted-foreground group-hover:glow-violet transition-all">
-              <Clock className="size-4" />
-              {t('classroom.recentClassrooms')}
-              <span className="text-xs tabular-nums opacity-60">({classrooms.length})</span>
-              <motion.div
-                animate={{ rotate: recentOpen ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ChevronDown className="size-4" />
-              </motion.div>
-            </span>
-            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-          </button>
+          
 
           {/* Grid */}
           <AnimatePresence>
